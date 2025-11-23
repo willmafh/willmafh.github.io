@@ -1,0 +1,13 @@
+{
+    "version": "https://jsonfeed.org/version/1",
+    "title": "https://willmafh.github.io/",
+    "description": "",
+    "home_page_url": "https://willmafh.github.io/willmafh.github.io",
+    "feed_url": "https://willmafh.github.io/willmafh.github.io/feed.json",
+    "user_comment": "",
+    "author": {
+        "name": "willmafh"
+    },
+    "items": [
+    ]
+}
