@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lua tricks - https://willmafh.github.io/</title><meta name="description" content="NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 print will first call __tostring metamethod in value's metatable if it exists. local t = {} local mt =&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/willmafh.github.io/lua-tricks-2.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/willmafh.github.io/feed.xml" title="https://willmafh.github.io/ - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/willmafh.github.io/feed.json" title="https://willmafh.github.io/ - JSON"><meta property="og:title" content="Lua tricks"><meta property="og:site_name" content="https://willmafh.github.io/"><meta property="og:description" content="NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 print will first call __tostring metamethod in value's metatable if it exists. local t = {} local mt =&hellip;"><meta property="og:url" content="https://willmafh.github.io/willmafh.github.io/lua-tricks-2.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/willmafh.github.io/lua-tricks-2.html"},"headline":"Lua tricks","datePublished":"2025-11-23T18:12+08:00","dateModified":"2025-11-23T18:42+08:00","description":"NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 print will first call __tostring metamethod in value's metatable if it exists. local t = {} local mt =&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
+                    opacity: 1;
+                }</style></noscript></head><body class="page-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/willmafh.github.io/">https://willmafh.github.io/</a></header><main class="page"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Lua tricks</h1></div></header></div><div class="entry-wrapper content__entry"><p><em>NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3</em></p><h1>Lua global stuff</h1><h4>print function</h4><p>print will first call <strong>__tostring </strong>metamethod in value's metatable if it exists.</p><pre class="language-lua"><code>local t = {}
+local mt = {
+    __tostring = function()
+        return "willmafh's table"
+    end
+}
+setmetatable(t, mt)
+
+print(t)  -- will print `willmafh's table`</code></pre><p>number, string, boolean, and nil will print their values as normal.</p><p>for other type values, it will try to get <strong>__name </strong>first, if it's not a string, then Lua default type name will be used.</p><pre class="language-lua"><code>local t = {}
+local mt = {
+    __name = "willmafh's table"
+}
+setmetatable(t, mt)
+
+print(t)  -- `willmafh's table: 0x5f3167d3acf0`
+
+----------------------------
+
+local t = {}
+local mt = {
+    __name = function() return "willmafh's table" end  -- here __name should be a string, otherwise it's meaningless
+}
+setmetatable(t, mt)
+
+print(t)  -- `table: 0x5f3167d3acf0`</code></pre><h4>Lua global table</h4><pre class="language-lua"><code>-- _G is Lua's global table
+print(_G)
+
+-- following can recursively get the global table
+print(_G["_G"])
+print(_G._G)</code></pre><h4>Lua version</h4><pre class="language-lua"><code>print(_G._VERSION)</code></pre></div></article></main><footer class="footer"><div class="wrapper"><div class="footer__copyright">Powered by Publii</div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://willmafh.github.io/willmafh.github.io/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://willmafh.github.io/willmafh.github.io/assets/js/scripts.min.js?v=700105c316933a8202041b6415abb233"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
+        for (var i = 0; i < images.length; i++) {
+            if (images[i].complete) {
+                images[i].classList.add('is-loaded');
+            } else {
+                images[i].addEventListener('load', function () {
+                    this.classList.add('is-loaded');
+                }, false);
+            }
+        }</script></body></html>
