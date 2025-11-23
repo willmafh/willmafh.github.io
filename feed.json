@@ -2,16 +2,16 @@
     "version": "https://jsonfeed.org/version/1",
     "title": "willmafh",
     "description": "",
-    "home_page_url": "https://willmafh.github.io/willmafh.github.io",
-    "feed_url": "https://willmafh.github.io/willmafh.github.io/feed.json",
+    "home_page_url": "https://willmafh.github.io",
+    "feed_url": "https://willmafh.github.io/feed.json",
     "user_comment": "",
     "author": {
         "name": "willmafh"
     },
     "items": [
         {
-            "id": "https://willmafh.github.io/willmafh.github.io/lua-tricks-3.html",
-            "url": "https://willmafh.github.io/willmafh.github.io/lua-tricks-3.html",
+            "id": "https://willmafh.github.io/lua-tricks-3.html",
+            "url": "https://willmafh.github.io/lua-tricks-3.html",
             "title": "Lua tricks",
             "summary": "NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 local t = {} local mt = { __tostring = function() return &quot;willmafh&#39;s table&quot; end } setmetatable(t, mt) print(t)&hellip;",
             "content_html": "<p><em>NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3</em></p><h2 id=\"lua-global-stuff\">Lua global stuff</h2>\n<h3 id=\"print-function\">print function</h3>\n<ul>\n<li>print will first call <code>__tostring</code> metamethod in value’s metatable if it exists.</li>\n</ul>\n<pre><code class=\"language-lua\">local t = {}\nlocal mt = {\n    __tostring = function()\n        return &quot;willmafh&#39;s table&quot;\n    end\n}\nsetmetatable(t, mt)\n\nprint(t)  -- will print `willmafh&#39;s table`\n</code></pre>\n<ul>\n<li>number, string, boolean, and nil will print their values as normal.</li>\n<li>for other type values, it will try to get <code>__name</code> first, if it’s not a string, then Lua default type name will be used.</li>\n</ul>\n<pre><code class=\"language-lua\">local t = {}\nlocal mt = {\n    __name = &quot;willmafh&#39;s table&quot;\n}\nsetmetatable(t, mt)\n\nprint(t)  -- `willmafh&#39;s table: 0x5f3167d3acf0`\n</code></pre>\n<pre><code class=\"language-lua\">local t = {}\nlocal mt = {\n    -- here __name should be a string, otherwise it&#39;s meaningless\n    __name = function() return &quot;willmafh&#39;s table&quot; end\n}\nsetmetatable(t, mt)\n\nprint(t)  -- `table: 0x5f3167d3acf0`\n</code></pre>\n<h3 id=\"lua-global-table\">Lua global table</h3>\n<pre><code class=\"language-lua\">-- _G is Lua&#39;s global table\nprint(_G)\n\n-- following can recursively get the global table\nprint(_G[&quot;_G&quot;])\nprint(_G._G)\n</code></pre>\n<h3 id=\"lua-version\">Lua version</h3>\n<pre><code>print(_G._VERSION)\n</code></pre>\n",

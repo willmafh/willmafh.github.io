@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
     <title>willmafh</title>
-    <link href="https://willmafh.github.io/willmafh.github.io/feed.xml" rel="self" />
-    <link href="https://willmafh.github.io/willmafh.github.io" />
+    <link href="https://willmafh.github.io/feed.xml" rel="self" />
+    <link href="https://willmafh.github.io" />
     <updated>2025-11-23T21:52:34+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
-    <id>https://willmafh.github.io/willmafh.github.io</id>
+    <id>https://willmafh.github.io</id>
 
     <entry>
         <title>Lua tricks</title>
         <author>
             <name>willmafh</name>
         </author>
-        <link href="https://willmafh.github.io/willmafh.github.io/lua-tricks-3.html"/>
-        <id>https://willmafh.github.io/willmafh.github.io/lua-tricks-3.html</id>
+        <link href="https://willmafh.github.io/lua-tricks-3.html"/>
+        <id>https://willmafh.github.io/lua-tricks-3.html</id>
             <category term="Lua"/>
 
         <updated>2025-11-23T20:36:53+08:00</updated>
