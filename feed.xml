@@ -1,12 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
-    <title>https://willmafh.github.io/</title>
+    <title>willmafh</title>
     <link href="https://willmafh.github.io/willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io/willmafh.github.io" />
-    <updated>1970-01-01T08:00:00+08:00</updated>
+    <updated>2025-11-23T21:22:41+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
     <id>https://willmafh.github.io/willmafh.github.io</id>
 
+    <entry>
+        <title>Lua tricks</title>
+        <author>
+            <name>willmafh</name>
+        </author>
+        <link href="https://willmafh.github.io/willmafh.github.io/lua-tricks-3.html"/>
+        <id>https://willmafh.github.io/willmafh.github.io/lua-tricks-3.html</id>
+            <category term="Lua"/>
+
+        <updated>2025-11-23T20:36:53+08:00</updated>
+            <summary type="html">
+                <![CDATA[
+                    NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 local t = {} local mt = { __tostring = function() return &quot;willmafh&#39;s table&quot; end } setmetatable(t, mt) print(t)&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <p><em>NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3</em></p><h2 id="lua-global-stuff">Lua global stuff</h2>
+<h3 id="print-function">print function</h3>
+<ul>
+<li>print will first call <code>__tostring</code> metamethod in value’s metatable if it exists.</li>
+</ul>
+<pre><code class="language-lua">local t = {}
+local mt = {
+    __tostring = function()
+        return &quot;willmafh&#39;s table&quot;
+    end
+}
+setmetatable(t, mt)
+
+print(t)  -- will print `willmafh&#39;s table`
+</code></pre>
+<ul>
+<li>number, string, boolean, and nil will print their values as normal.</li>
+<li>for other type values, it will try to get <code>__name</code> first, if it’s not a string, then Lua default type name will be used.</li>
+</ul>
+<pre><code class="language-lua">local t = {}
+local mt = {
+    __name = &quot;willmafh&#39;s table&quot;
+}
+setmetatable(t, mt)
+
+print(t)  -- `willmafh&#39;s table: 0x5f3167d3acf0`
+</code></pre>
+<pre><code class="language-lua">local t = {}
+local mt = {
+    -- here __name should be a string, otherwise it&#39;s meaningless
+    __name = function() return &quot;willmafh&#39;s table&quot; end
+}
+setmetatable(t, mt)
+
+print(t)  -- `table: 0x5f3167d3acf0`
+</code></pre>
+<h3 id="lua-global-table">Lua global table</h3>
+<pre><code class="language-lua">-- _G is Lua&#39;s global table
+print(_G)
+
+-- following can recursively get the global table
+print(_G[&quot;_G&quot;])
+print(_G._G)
+</code></pre>
+<h3 id="lua-version">Lua version</h3>
+<pre><code>print(_G._VERSION)
+</code></pre>
+
+            ]]>
+        </content>
+    </entry>
 </feed>
