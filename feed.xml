@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2025-11-24T12:53:06+08:00</updated>
+    <updated>2025-11-24T17:06:06+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -85,6 +85,55 @@ warn(&quot;hello world&quot;)  -- Lua warning: hello world
 warn(&quot;hello&quot;, &quot; from willmafh&quot;)  -- Lua warning: hello from willmafh
 warn(&quot;@off&quot;)
 warn(&quot;hello world&quot;)  -- won&#39;t log this warning message
+</code></pre>
+<h3 id="setmetatable-function">setmetatable function</h3>
+<ul>
+<li><code>setmetatable</code> will return its first argument, that is the table itself, it won’t create a new table</li>
+</ul>
+<pre><code class="language-lua">local t = {}
+local mt = {}
+local rt = setmetatable(t, mt)
+print(t, rt)  -- here t and rt are the same value
+</code></pre>
+<ul>
+<li>if the object’s metatable has <code>__metatable</code> field, it means the metatable is protected, and we can’t use setmetatable again to change it</li>
+</ul>
+<pre><code class="language-lua">local mt = {
+    __metatable = &quot;the metatable is protected&quot;,
+    __tostring = function()
+        return &quot;willmafh&#39;s table&quot;
+    end
+}
+local t = setmetatable({}, mt)
+setmetatable(t, {})  -- error throw here
+</code></pre>
+<ul>
+<li><code>nil</code> metatable argument will clear table’s original metatable if there is any</li>
+</ul>
+<pre><code class="language-lua">local mt = {
+    __tostring = function()
+        return &quot;willmafh&#39;s table from __tostring&quot;
+    end
+}
+local t = setmetatable({}, mt)
+print(getmetatable(t))  -- table: 0x603284328ef0
+
+setmetatable(t, nil)
+print(getmetatable(t))  -- nil
+</code></pre>
+<h3 id="getmetatable-function">getmetatable function</h3>
+<ul>
+<li>if the object’s metatable has <code>__metatable</code>, then returns its value, it
+can be any type. otherwise returns the metatable itself</li>
+</ul>
+<pre><code class="language-lua">local mt = {
+    __metatable = &quot;the metatable is protected&quot;,  -- can be any type value
+    __tostring = function()
+        return &quot;willmafh&#39;s table&quot;
+    end
+}
+local t = setmetatable({}, mt)
+print(getmetatable(t))  -- __metatable value is printed
 </code></pre>
 
             ]]>
