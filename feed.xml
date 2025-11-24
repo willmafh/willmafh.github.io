@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2025-11-24T12:41:39+08:00</updated>
+    <updated>2025-11-24T12:53:06+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -75,10 +75,10 @@ print(_G._G)
 </code></pre>
 <h3 id="warn-function">warn function</h3>
 <ul>
-<li>should use control message <code>&quot;@on&quot;</code> to turn on warning message emitting</li>
+<li>should use control message <code>&quot;@on&quot;</code> to turn on warning message emitting first</li>
 <li><code>warn(msg1, msg2, ...)</code> function can concat multiple string message</li>
-<li>should use control message <code>&quot;@off&quot;</code> to turn off warn function</li>
-<li>only two control messages, <code>&quot;@on&quot;</code>/<code>&quot;@off&quot;</code>, other messages start with ‘@’ are normal messages</li>
+<li>then should use control message <code>&quot;@off&quot;</code> to turn off warn function</li>
+<li>there are only two control messages, <code>&quot;@on&quot;</code>/<code>&quot;@off&quot;</code>, other messages start with ‘@’ are normal messages</li>
 </ul>
 <pre><code class="language-lua">warn(&quot;@on&quot;)
 warn(&quot;hello world&quot;)  -- Lua warning: hello world
