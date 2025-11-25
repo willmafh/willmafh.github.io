@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2025-11-25T14:16:14+08:00</updated>
+    <updated>2025-11-25T16:09:31+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -144,6 +144,25 @@ print(getmetatable(t))  -- __metatable value is printed
 
 local registry = debug.getregistry()
 print(registry[&quot;LUA_NOENV&quot;])  -- true, since -E is used
+</code></pre>
+<h4 id="lua_path_5_4lua_path-lua_cpath_5_4lua_cpath">LUA_PATH_5_4/LUA_PATH, LUA_CPATH_5_4/LUA_CPATH</h4>
+<ul>
+<li><code>;;</code> in envs <code>LUA_PATH_5_4</code>/<code>LUA_PATH</code> means to insert default value from macro <code>LUA_PATH_DEFAULT</code> to <code>package.path</code>‘s final value</li>
+<li><code>;;</code> in envs <code>LUA_CPATH_5_4</code>/<code>LUA_CPATH</code> means to insert default value from macro <code>LUA_CPATH_DEFAULT</code> to <code>package.cpath</code>‘s final   value</li>
+<li>when lua is initialized, function luaopen_package will handle all these details</li>
+</ul>
+<pre><code class="language-lua">--[[ /usr/local/share/lua/5.4/?.lua;/usr/local/share/lua/5.4/?/init.lua;/usr/local/lib/lua/5.4/?.lua;/usr/local/lib/lua/5.4/?/init.lua;./?.lua;./?/init.lua
+--]]
+print(package.path)
+
+-- /usr/local/lib/lua/5.4/?.so;/usr/local/lib/lua/5.4/loadall.so;./?.so
+print(package.cpath)
+</code></pre>
+<h4 id="packageconfig">package.config</h4>
+<ul>
+<li>a string describing some compile-time configurations for packages, please refer to lua manual for details</li>
+</ul>
+<pre><code class="language-lua">print(package.config)
 </code></pre>
 
             ]]>
