@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lua tricks - willmafh</title><meta name="description" content="NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 local t = {} local mt = { __tostring = function() return &quot;willmafh&#39;s table&quot; end } setmetatable(t, mt) print(t)&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/lua-tricks.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Lua tricks"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 local t = {} local mt = { __tostring = function() return &quot;willmafh&#39;s table&quot; end } setmetatable(t, mt) print(t)&hellip;"><meta property="og:url" content="https://willmafh.github.io/lua-tricks.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/lua-tricks.html"},"headline":"Lua tricks","datePublished":"2025-11-23T20:36+08:00","dateModified":"2025-11-25T16:09+08:00","description":"NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 local t = {} local mt = { __tostring = function() return &quot;willmafh&#39;s table&quot; end } setmetatable(t, mt) print(t)&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
+<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lua tricks - willmafh</title><meta name="description" content="NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 local t = {} local mt = { __tostring = function() return &quot;willmafh&#39;s table&quot; end } setmetatable(t, mt) print(t)&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/lua-tricks.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Lua tricks"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 local t = {} local mt = { __tostring = function() return &quot;willmafh&#39;s table&quot; end } setmetatable(t, mt) print(t)&hellip;"><meta property="og:url" content="https://willmafh.github.io/lua-tricks.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/lua-tricks.html"},"headline":"Lua tricks","datePublished":"2025-11-23T20:36+08:00","dateModified":"2025-11-25T22:47+08:00","description":"NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 local t = {} local mt = { __tostring = function() return &quot;willmafh&#39;s table&quot; end } setmetatable(t, mt) print(t)&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
                     opacity: 1;
                 }</style></noscript></head><body class="post-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/">willmafh</a></header><main class="post"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Lua tricks</h1><div class="feed__meta content__meta"><time datetime="2025-11-23T20:36" class="feed__date">November 23, 2025</time></div></div></header></div><div class="entry-wrapper content__entry"><p><em>NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3</em></p><h2 id="lua-global-stuff">Lua global stuff</h2><h3 id="print-function">print function</h3><ul><li>print will first call <code>__tostring</code> metamethod in value’s metatable if it exists.</li></ul><pre><code class="language-lua">local t = {}
 local mt = {
@@ -66,17 +66,96 @@ print(getmetatable(t))  -- nil
 }
 local t = setmetatable({}, mt)
 print(getmetatable(t))  -- __metatable value is printed
-</code></pre><h3 id="environment-variables">environment variables</h3><h4 id="lua_noenv">LUA_NOENV</h4><ul><li>if <code>lua</code> is used with <code>-E</code> option, then <code>LUA_NOENV</code> will be set true in registry</li></ul><pre><code class="language-lua">#!/usr/bin/lua5.4 -E
+</code></pre><h3 id="require-function">require function</h3><ul><li><code>require</code> function will first search registry[“_LOADED”] table, and if there is a required module, then it return directly</li><li><code>package</code> table is the upvalue of <code>require</code> function</li></ul><pre><code class="language-lua">local registry = debug.getregistry()
+
+--[[
+string  table
+table: 0x5efa18719710
+table: 0x5efa18719710
+--]]
+local name, upvalue = debug.getupvalue(require, 1)
+print(type(name), type(upvalue))
+print(upvalue)
+print(_G[&quot;package&quot;])
+</code></pre><h2 id="registry-table">registry table</h2><ul><li>the <code>first</code> element in registry table array is the main Lua thread, and the <code>second</code> element in registry table array is the global table <code>_G</code></li></ul><pre><code class="language-lua">local registry = debug.getregistry()
+
+-- thread: 0x5886909e72a8
+print(registry[1])  -- main thread
+
+--[[
+table: 0x5886909e7c50
+table: 0x5886909e7c50
+--]]
+print(registry[2]) -- global table _G
+print(_G)
+</code></pre><ul><li>all <code>require</code> loaded modules, including lua file module and c libs module, are kept in registry[“_LOADED”] table.</li></ul><pre><code class="language-lua">require &quot;lfs&quot;
+require &quot;cjson.safe&quot;
+
+local registry = debug.getregistry()
+
+for k, v in pairs(registry[&quot;_LOADED&quot;]) do
+    print(k, v)
+end
+
+--[[
+_G      table: 0x6461ef84bc50
+os      table: 0x5786711edbb0
+...
+lfs     table: 0x6461ef8526f0
+cjson.safe      table: 0x6461ef855a80
+...
+--]]
+</code></pre><ul><li>all loaded c libs will be kept in registry[“_CLIBS”] table and each lib will be kept in two ways, one is key value way, the other is an array element</li></ul><pre><code class="language-lua">local lfs = require &quot;lfs&quot;
+local cjson = require &quot;cjson.safe&quot;
+
+local registry = debug.getregistry()
+
+local clibs = registry[&quot;_CLIBS&quot;]
+
+--[[
+1       userdata: 0x567153cf7fe0
+2       userdata: 0x567153cfa700
+/usr/local/lib/lua/5.4/lfs.so   userdata: 0x567153cf7fe0
+/usr/local/lib/lua/5.4/cjson.so userdata: 0x567153cfa700
+--]]
+for k, v in pairs(clibs) do
+    print(k, v)
+end
+
+--[[
+1       userdata: 0x567153cf7fe0
+2       userdata: 0x567153cfa700
+--]]
+for i, v in ipairs(clibs) do
+    print(i, v)
+end
+</code></pre><h2 id="environment-variables">environment variables</h2><h3 id="lua_noenv">LUA_NOENV</h3><ul><li>if <code>lua</code> is used with <code>-E</code> option, then <code>LUA_NOENV</code> will be set true in registry</li></ul><pre><code class="language-lua">#!/usr/bin/lua5.4 -E
 
 local registry = debug.getregistry()
 print(registry[&quot;LUA_NOENV&quot;])  -- true, since -E is used
-</code></pre><h4 id="lua_path_5_4lua_path-lua_cpath_5_4lua_cpath">LUA_PATH_5_4/LUA_PATH, LUA_CPATH_5_4/LUA_CPATH</h4><ul><li><code>;;</code> in envs <code>LUA_PATH_5_4</code>/<code>LUA_PATH</code> means to insert default value from macro <code>LUA_PATH_DEFAULT</code> to <code>package.path</code>‘s final value</li><li><code>;;</code> in envs <code>LUA_CPATH_5_4</code>/<code>LUA_CPATH</code> means to insert default value from macro <code>LUA_CPATH_DEFAULT</code> to <code>package.cpath</code>‘s final value</li><li>when lua is initialized, function luaopen_package will handle all these details</li></ul><pre><code class="language-lua">--[[ /usr/local/share/lua/5.4/?.lua;/usr/local/share/lua/5.4/?/init.lua;/usr/local/lib/lua/5.4/?.lua;/usr/local/lib/lua/5.4/?/init.lua;./?.lua;./?/init.lua
+</code></pre><h3 id="lua_path_5_4lua_path-lua_cpath_5_4lua_cpath">LUA_PATH_5_4/LUA_PATH, LUA_CPATH_5_4/LUA_CPATH</h3><ul><li><code>;;</code> in envs <code>LUA_PATH_5_4</code>/<code>LUA_PATH</code> means to insert default value from macro <code>LUA_PATH_DEFAULT</code> to <code>package.path</code>‘s final value</li><li><code>;;</code> in envs <code>LUA_CPATH_5_4</code>/<code>LUA_CPATH</code> means to insert default value from macro <code>LUA_CPATH_DEFAULT</code> to <code>package.cpath</code>‘s final value</li><li>when lua is initialized, function luaopen_package will handle all these details</li></ul><pre><code class="language-lua">--[[ /usr/local/share/lua/5.4/?.lua;/usr/local/share/lua/5.4/?/init.lua;/usr/local/lib/lua/5.4/?.lua;/usr/local/lib/lua/5.4/?/init.lua;./?.lua;./?/init.lua
 --]]
 print(package.path)
 
 -- /usr/local/lib/lua/5.4/?.so;/usr/local/lib/lua/5.4/loadall.so;./?.so
 print(package.cpath)
-</code></pre><h4 id="packageconfig">package.config</h4><ul><li>a string describing some compile-time configurations for packages, please refer to lua manual for details</li></ul><pre><code class="language-lua">print(package.config)
+</code></pre><h2 id="package-table">package table</h2><h3 id="packageconfig">package.config</h3><ul><li>a string describing some compile-time configurations for packages, please refer to lua manual for details</li></ul><pre><code class="language-lua">print(package.config)
+</code></pre><h3 id="packageloaded">package.loaded</h3><ul><li><code>package.loaded</code> is a reference to <code>registry[&quot;_LOADED&quot;]</code></li></ul><pre><code class="language-lua">local registry = debug.getregistry()
+
+--[[
+table: 0x5c638d059a60
+table: 0x5c638d059a60
+--]]
+print(registry[&quot;_LOADED&quot;])
+print(package.loaded)
+</code></pre><h3 id="packagepreload">package.preload</h3><ul><li><code>package.preload</code> is a reference to <code>registry[&quot;_PRELOAD&quot;]</code></li></ul><pre><code class="language-lua">local registry = debug.getregistry()
+
+--[[
+table: 0x64a359eb7be0
+table: 0x64a359eb7be0
+--]]
+print(registry[&quot;_PRELOAD&quot;])
+print(package.preload)
 </code></pre></div><footer class="content__footer"><div class="entry-wrapper"><p class="content__updated">This article was updated on November 25, 2025</p><div class="content__actions"><ul class="content__tag"><li><a href="https://willmafh.github.io/tags/lua/">Lua</a></li></ul><div class="content__share"><button class="btn--icon content__share-button js-content__share-button"><svg width="20" height="20" aria-hidden="true"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#share"></use></svg> <span>Share It</span></button><div class="content__share-popup js-content__share-popup"><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwillmafh.github.io%2Flua-tricks.html&amp;via=willmafh&amp;text=Lua%20tricks" class="js-share twitter" rel="nofollow noopener noreferrer"><svg class="icon" aria-hidden="true" focusable="false"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg> <span>Twitter</span></a></div></div></div></div></footer></article><div class="content__comments"><div class="entry-wrapper"></div></div></main><footer class="footer"><div class="wrapper"><div class="footer__copyright"><p>Powered by Publii</p></div><div class="footer__social"><a href="https://x.com/willmafh" aria-label="X"><svg><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg></a></div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://willmafh.github.io/assets/js/scripts.min.js?v=700105c316933a8202041b6415abb233"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
         for (var i = 0; i < images.length; i++) {
             if (images[i].complete) {
