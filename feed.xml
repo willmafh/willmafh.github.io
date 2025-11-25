@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2025-11-24T17:06:06+08:00</updated>
+    <updated>2025-11-25T14:16:14+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -134,6 +134,16 @@ can be any type. otherwise returns the metatable itself</li>
 }
 local t = setmetatable({}, mt)
 print(getmetatable(t))  -- __metatable value is printed
+</code></pre>
+<h3 id="environment-variables">environment variables</h3>
+<h4 id="lua_noenv">LUA_NOENV</h4>
+<ul>
+<li>if <code>lua</code> is used with <code>-E</code> option, then <code>LUA_NOENV</code> will be set true in registry</li>
+</ul>
+<pre><code class="language-lua">#!/usr/bin/lua5.4 -E
+
+local registry = debug.getregistry()
+print(registry[&quot;LUA_NOENV&quot;])  -- true, since -E is used
 </code></pre>
 
             ]]>
