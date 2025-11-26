@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2025-11-25T22:47:51+08:00</updated>
+    <updated>2025-11-26T17:39:00+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -137,7 +137,7 @@ print(getmetatable(t))  -- __metatable value is printed
 </code></pre>
 <h3 id="require-function">require function</h3>
 <ul>
-<li><code>require</code> function will first search registry[“_LOADED”] table, and if there is a required module, then it return directly</li>
+<li><code>require</code> function will first search <code>registry[&quot;_LOADED&quot;]</code> table, and if there is a required module, then it return directly</li>
 <li><code>package</code> table is the upvalue of <code>require</code> function</li>
 </ul>
 <pre><code class="language-lua">local registry = debug.getregistry()
@@ -169,7 +169,7 @@ print(registry[2]) -- global table _G
 print(_G)
 </code></pre>
 <ul>
-<li>all <code>require</code> loaded modules, including lua file module and c libs module, are kept in registry[“_LOADED”] table.</li>
+<li>all <code>require</code> loaded modules, including lua file module and c libs module, are kept in <code>registry[&quot;_LOADED&quot;]</code> table.</li>
 </ul>
 <pre><code class="language-lua">require &quot;lfs&quot;
 require &quot;cjson.safe&quot;
@@ -190,7 +190,7 @@ cjson.safe      table: 0x6461ef855a80
 --]]
 </code></pre>
 <ul>
-<li>all loaded c libs will be kept in registry[“_CLIBS”] table and each lib will be kept in two ways, one is key value way, the other is an array element</li>
+<li>all loaded c libs will be kept in <code>registry[&quot;_CLIBS&quot;]</code> table and each lib will be kept in two ways, one is key value way, the other is an array element</li>
 </ul>
 <pre><code class="language-lua">local lfs = require &quot;lfs&quot;
 local cjson = require &quot;cjson.safe&quot;
@@ -216,6 +216,16 @@ end
 for i, v in ipairs(clibs) do
     print(i, v)
 end
+</code></pre>
+<ul>
+<li><code>registry[&quot;_PRELOAD&quot;]</code> is normally an empty table, but it can be used to store loaders for lua modules, and when <code>require</code> function load a new module, it will first search this table, so you can use it to do something interesting</li>
+</ul>
+<pre><code class="language-lua">package.preload[&quot;devtools&quot;] = function()
+    return { editor = &quot;vim&quot;, os = &quot;linux&quot; }
+end
+
+local devtools = require &quot;devtools&quot;
+print(devtools.editor, devtools.os)
 </code></pre>
 <h2 id="environment-variables">environment variables</h2>
 <h3 id="lua_noenv">LUA_NOENV</h3>
@@ -272,6 +282,52 @@ table: 0x64a359eb7be0
 --]]
 print(registry[&quot;_PRELOAD&quot;])
 print(package.preload)
+</code></pre>
+<h3 id="packagesearchers">package.searchers</h3>
+<ul>
+<li>a table contains four searching functions (currently), which is used by <code>require</code> method to search modules, and they are searched in the following order<ul>
+<li>preload table</li>
+<li>lua module, searching <code>package.path</code> one by one</li>
+<li>c module, searching <code>package.cpath</code> one by one</li>
+<li>c root module, still searching <code>package.cpath</code>, but build name by stripping components after the first dot ‘.’</li>
+</ul>
+</li>
+<li>using <code>require &quot;cjson.safe&quot;</code> as an example to illustrate the differences between searching c and searching c root</li>
+</ul>
+<pre><code class="language-lua">-- searching c: &#39;/usr/local/lib/lua/5.4/`cjson/safe.so`&#39;, will try to find safe.so under cjson directory
+-- searching c root: &#39;/usr/local/lib/lua/5.4/`cjson.so`&#39;, will try to find cjson.so
+local cjson = require &quot;cjson.safe&quot;
+</code></pre>
+<ul>
+<li>both of searching c and c  root will finally look for function beginning with prefix <code>luaopen_</code>, such as ‘luaopen_cjson’ or ‘luaopen_cjson_safe’</li>
+</ul>
+<h3 id="packagesearchpath">package.searchpath</h3>
+<ul>
+<li>searching name in the given path, which is a template like <code>package.path</code><ul>
+<li>dot ‘.’ in name will be replaced by ‘/‘</li>
+<li>‘?’ in path will be replaced by dot replaced name</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-lua">local name = &quot;foo.a&quot;
+local path = &quot;./?.lua;./?.lc;/usr/local/?/init.lua&quot;
+
+-- so the search order will be: &#39;./foo/a.lua&#39;, &#39;./foo/a.lc&#39;, &#39;/usr/local/foo/a/init.lua&#39;
+package.searchpath(name, path)
+</code></pre>
+<h3 id="packageloadlib">package.loadlib</h3>
+<ul>
+<li>it <code>does not</code> perform any path searching and <code>does not</code> automatically adds extensions like <code>require</code>, so libname arg must be the complete path</li>
+<li>if funcname is “*” , then only loads and exports all symbols in the lib. otherwise looks for funcname and return it as a lua c function</li>
+<li>libs loaded by this function will be added to <code>registry[&quot;_CLIBS&quot;]</code> table</li>
+</ul>
+<pre><code class="language-lua">local cjson_path = &quot;/usr/local/lib/lua/5.4/cjson.so&quot;
+
+print(package.loadlib(cjson_path, &quot;*&quot;))  -- true
+
+-- error here, since &quot;json_encode&quot; is not exported by cjson.so, but hey this is just an example
+local json_encode = package.loadlib(cjson_path, &quot;json_encode&quot;)
+-- using function following...
 </code></pre>
 
             ]]>
