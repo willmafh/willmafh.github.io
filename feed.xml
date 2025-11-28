@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2025-11-26T17:39:00+08:00</updated>
+    <updated>2025-11-28T15:59:41+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -21,12 +21,32 @@
         <updated>2025-11-23T20:36:53+08:00</updated>
             <summary type="html">
                 <![CDATA[
-                    NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 local t = {} local mt = { __tostring = function() return &quot;willmafh&#39;s table&quot; end } setmetatable(t, mt) print(t)&hellip;
+                    NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 -- both of cases are correct lua -e&#39;print(&quot;hello world&quot;) lua -e &#39;print(&quot;hello world&quot;)&#39; command prompt command prompt default values&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                <p><em>NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3</em></p><h2 id="lua-global-stuff">Lua global stuff</h2>
+                <p><em>NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3</em></p><h2 id="lua-command">lua command</h2>
+<h3 id="-e-flag">-e flag</h3>
+<pre><code class="language-shell">-- both of cases are correct
+lua -e&#39;print(&quot;hello world&quot;)
+
+lua -e &#39;print(&quot;hello world&quot;)&#39;
+</code></pre>
+<h3 id="command-prompt">command prompt</h3>
+<ul>
+<li>command prompt default values<ul>
+<li><code>_PROMPT</code> is “&gt; “</li>
+<li><code>_PROMPT2</code> is “&gt;&gt; “</li>
+</ul>
+</li>
+<li>we can set global values like below to change lua command prompts</li>
+</ul>
+<pre><code class="language-shell">export LUA_INIT=&#39;_G._PROMPT = &quot;~ &quot;; _G._PROMPT2 = &quot;~~ &quot;&#39;
+
+lua  -- then prompts will be changed to new values
+</code></pre>
+<h2 id="lua-global-stuff">Lua global stuff</h2>
 <h3 id="print-function">print function</h3>
 <ul>
 <li>print will first call <code>__tostring</code> metamethod in value’s metatable if it exists.</li>
@@ -152,6 +172,21 @@ print(type(name), type(upvalue))
 print(upvalue)
 print(_G[&quot;package&quot;])
 </code></pre>
+<h3 id="error-function">error function</h3>
+<ul>
+<li>not only can log string messages, but can log error objects, which has <code>__tostring</code> metamethod in its metatable</li>
+</ul>
+<pre><code class="language-lua">local errobj = setmetatable({}, {
+    __tostring = function()
+        return &quot;error from tostring meta method&quot;
+    end
+})
+
+error(errobj)
+</code></pre>
+<ul>
+<li>why does <code>error</code> never returns? Actually, all things the function under error does is to prepare an error message and put it on the top of the stack, then calling <code>LUAI_THROW</code> macro, which is implemented by <code>longjmp</code> in c, so we will back to where <code>LUAI_TRY</code> is called, which is obviously implemented by <code>setjmp</code> in c, finally will call <code>report</code> function to log the error message</li>
+</ul>
 <h2 id="registry-table">registry table</h2>
 <ul>
 <li>the <code>first</code> element in registry table array is the main Lua thread, and the <code>second</code> element in registry table array is the global table <code>_G</code></li>
@@ -249,6 +284,14 @@ print(package.path)
 
 -- /usr/local/lib/lua/5.4/?.so;/usr/local/lib/lua/5.4/loadall.so;./?.so
 print(package.cpath)
+</code></pre>
+<h3 id="lua_init_5_4lua_init">LUA_INIT_5_4/LUA_INIT</h3>
+<ul>
+<li>setup init env to do something before anything else</li>
+</ul>
+<pre><code class="language-shell">export LUA_INIT_5_4=&#39;@init.lua&#39;   -- using `@` to load an init file
+
+export LUA_INIT=&#39;print(&quot;hello world from init&quot;)&#39;  -- init lua string
 </code></pre>
 <h2 id="package-table">package table</h2>
 <h3 id="packageconfig">package.config</h3>
