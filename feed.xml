@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2025-11-28T15:59:41+08:00</updated>
+    <updated>2025-12-08T22:54:38+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -371,6 +371,18 @@ print(package.loadlib(cjson_path, &quot;*&quot;))  -- true
 -- error here, since &quot;json_encode&quot; is not exported by cjson.so, but hey this is just an example
 local json_encode = package.loadlib(cjson_path, &quot;json_encode&quot;)
 -- using function following...
+</code></pre>
+<h2 id="misc-stuff">misc stuff</h2>
+<h3 id="z-escape-sequence"><code>\z</code> escape sequence</h3>
+<p>It skips the following span of whitespace characters, including line breaks; it is particularly useful to break and indent a long literal string into multiple lines without adding the newlines and spaces into the string contents</p><pre><code class="language-lua">local s = &quot;This is a very long string that \z
+can be broken into multiple lines in the source \z
+code for readability without adding actual newlines \z
+to the string&#39;s content.&quot;
+
+print(s)
+
+local s = &quot;\z     hello \z    world&quot;
+print(s)  -- &#39;hello world&#39;
 </code></pre>
 
             ]]>
