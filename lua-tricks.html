@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lua tricks - willmafh</title><meta name="description" content="NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 -- both of cases are correct lua -e&#39;print(&quot;hello world&quot;) lua -e &#39;print(&quot;hello world&quot;)&#39; command prompt command prompt default values&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/lua-tricks.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Lua tricks"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 -- both of cases are correct lua -e&#39;print(&quot;hello world&quot;) lua -e &#39;print(&quot;hello world&quot;)&#39; command prompt command prompt default values&hellip;"><meta property="og:url" content="https://willmafh.github.io/lua-tricks.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/lua-tricks.html"},"headline":"Lua tricks","datePublished":"2025-11-23T20:36+08:00","dateModified":"2025-12-08T22:54+08:00","description":"NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 -- both of cases are correct lua -e&#39;print(&quot;hello world&quot;) lua -e &#39;print(&quot;hello world&quot;)&#39; command prompt command prompt default values&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
+<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lua tricks - willmafh</title><meta name="description" content="NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 -- both of cases are correct lua -e&#39;print(&quot;hello world&quot;) lua -e &#39;print(&quot;hello world&quot;)&#39; command prompt command prompt default values&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/lua-tricks.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Lua tricks"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 -- both of cases are correct lua -e&#39;print(&quot;hello world&quot;) lua -e &#39;print(&quot;hello world&quot;)&#39; command prompt command prompt default values&hellip;"><meta property="og:url" content="https://willmafh.github.io/lua-tricks.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/lua-tricks.html"},"headline":"Lua tricks","datePublished":"2025-11-23T20:36+08:00","dateModified":"2025-12-14T22:22+08:00","description":"NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3 -- both of cases are correct lua -e&#39;print(&quot;hello world&quot;) lua -e &#39;print(&quot;hello world&quot;)&#39; command prompt command prompt default values&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
                     opacity: 1;
                 }</style></noscript></head><body class="post-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/">willmafh</a></header><main class="post"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Lua tricks</h1><div class="feed__meta content__meta"><time datetime="2025-11-23T20:36" class="feed__date">November 23, 2025</time></div></div></header></div><div class="entry-wrapper content__entry"><p><em>NOTE: This is not a Lua tutorial or reference, just a place to record something interesting when I read Lua source code, which is version 5.4.3</em></p><h2 id="lua-command">lua command</h2><h3 id="-e-flag">-e flag</h3><pre><code class="language-shell">-- both of cases are correct
 lua -e&#39;print(&quot;hello world&quot;)
@@ -91,7 +91,29 @@ print(_G[&quot;package&quot;])
 })
 
 error(errobj)
-</code></pre><ul><li>why does <code>error</code> never returns? Actually, all things the function under error does is to prepare an error message and put it on the top of the stack, then calling <code>LUAI_THROW</code> macro, which is implemented by <code>longjmp</code> in c, so we will back to where <code>LUAI_TRY</code> is called, which is obviously implemented by <code>setjmp</code> in c, finally will call <code>report</code> function to log the error message</li></ul><h2 id="registry-table">registry table</h2><ul><li>the <code>first</code> element in registry table array is the main Lua thread, and the <code>second</code> element in registry table array is the global table <code>_G</code></li></ul><pre><code class="language-lua">local registry = debug.getregistry()
+</code></pre><ul><li>why does <code>error</code> never returns? Actually, all things the function under error does is to prepare an error message and put it on the top of the stack, then calling <code>LUAI_THROW</code> macro, which is implemented by <code>longjmp</code> in c, so we will back to where <code>LUAI_TRY</code> is called, which is obviously implemented by <code>setjmp</code> in c, finally will call <code>report</code> function to log the error message</li></ul><h3 id="arg-table">arg table</h3><ul><li>lua will collect all arguments in <code>arg</code> global table. The script name will be at index 0, and the first argument will be at index 1 and so on. The interpreter name and its options before the script will go to negative indices. <code>Indices &lt;= 0</code> belong to the associative part of the table, and <code>indices &gt; 0</code> belong to the array part</li></ul><pre><code class="language-shell">lua -W arg_test.lua hello world
+</code></pre><pre><code class="language-lua">local arg = _G.arg
+
+print(#arg)  -- 2, array part of the arg table
+--[[
+1       hello
+2       world
+--]]
+for i, v in ipairs(arg) do
+    print(i, v)
+end
+
+--[[
+1       hello
+2       world
+0       arg_test.lua
+-2      lua
+-1      -W
+--]]
+for k, v in pairs(arg) do
+    print(k, v)
+end
+</code></pre><h2 id="registry-table">registry table</h2><ul><li>the <code>first</code> element in registry table array is the main Lua thread, and the <code>second</code> element in registry table array is the global table <code>_G</code></li></ul><pre><code class="language-lua">local registry = debug.getregistry()
 
 -- thread: 0x5886909e72a8
 print(registry[1])  -- main thread
@@ -194,6 +216,46 @@ print(package.loadlib(cjson_path, &quot;*&quot;))  -- true
 -- error here, since &quot;json_encode&quot; is not exported by cjson.so, but hey this is just an example
 local json_encode = package.loadlib(cjson_path, &quot;json_encode&quot;)
 -- using function following...
+</code></pre><h2 id="os-module">os module</h2><h3 id="ostime">os.time</h3><ul><li>current time if calling it without arguments</li></ul><pre><code class="language-lua">local now = os.time()
+print(now)
+</code></pre><ul><li>the time represented by the table argument</li></ul><pre><code class="language-lua">-- other fields will be ignored
+local date_tab = {
+    year = 2024,    -- Required
+    month = 1,      -- Required (1-12)
+    day = 15,       -- Required (1-31)
+    hour = 14,      -- Optional (0-23)
+    min = 30,       -- Optional (0-59)
+    sec = 45,       -- Optional (0-61, for leap seconds)
+    isdst = false   -- Optional (daylight saving time)
+}
+
+local timepoint = os.time(date_tab)
+print(timepoint)
+</code></pre><h3 id="osdate">os.date</h3><ul><li>current date string if calling it without any arguments</li></ul><pre><code class="language-lua">print(os.date())  -- Sun Dec 14 21:55:00 2025
+</code></pre><ul><li>If format is <code>not *t</code>, then date returns the date as a string, formatted according to the same rules as the ISO C function <code>strftime</code></li><li>If format starts with ‘!’, then the date is formatted in UTC and if format is the string <code>*t</code>, then date returns a table with the following fields</li></ul><pre><code class="language-lua">local date_tab = os.date(&quot;!*t&quot;)
+print(type(date_tab))  -- table
+--[[
+sec     11
+yday    348
+wday    1
+min     3
+month   12
+hour    14
+year    2025
+isdst   false
+day     14
+--]]
+for k, v in pairs(date_tab) do
+    print(k, v)
+end
+</code></pre><h3 id="osexecute">os.execute</h3><ul><li>to test whether there is a shell, calling it without any arguments</li></ul><pre><code class="language-lua">local shell = os.execute()
+print(shell)  -- true/false
+</code></pre><ul><li>execute a command, just a wrapper of the <code>system</code> library function</li></ul><pre><code class="language-lua">local ok, what, code = os.execute(&quot;ls&quot;)
+print(ok, what, code)  -- true  exit  0
+
+-- if the command was terminated by a signal, then the what string will be `signal`
+local ok, what, code = os.execute(&quot;hello&quot;)
+print(ok, what, code)  -- nil  exit  127
 </code></pre><h2 id="misc-stuff">misc stuff</h2><h3 id="z-escape-sequence"><code>\z</code> escape sequence</h3><p>It skips the following span of whitespace characters, including line breaks; it is particularly useful to break and indent a long literal string into multiple lines without adding the newlines and spaces into the string contents</p><pre><code class="language-lua">local s = &quot;This is a very long string that \z
 can be broken into multiple lines in the source \z
 code for readability without adding actual newlines \z
@@ -203,7 +265,7 @@ print(s)
 
 local s = &quot;\z     hello \z    world&quot;
 print(s)  -- &#39;hello world&#39;
-</code></pre></div><footer class="content__footer"><div class="entry-wrapper"><p class="content__updated">This article was updated on December 8, 2025</p><div class="content__actions"><ul class="content__tag"><li><a href="https://willmafh.github.io/tags/lua/">Lua</a></li></ul><div class="content__share"><button class="btn--icon content__share-button js-content__share-button"><svg width="20" height="20" aria-hidden="true"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#share"></use></svg> <span>Share It</span></button><div class="content__share-popup js-content__share-popup"><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwillmafh.github.io%2Flua-tricks.html&amp;via=willmafh&amp;text=Lua%20tricks" class="js-share twitter" rel="nofollow noopener noreferrer"><svg class="icon" aria-hidden="true" focusable="false"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg> <span>Twitter</span></a></div></div></div></div></footer></article><div class="content__comments"><div class="entry-wrapper"></div></div></main><footer class="footer"><div class="wrapper"><div class="footer__copyright"><p>Powered by Publii</p></div><div class="footer__social"><a href="https://x.com/willmafh" aria-label="X"><svg><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg></a></div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://willmafh.github.io/assets/js/scripts.min.js?v=700105c316933a8202041b6415abb233"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
+</code></pre></div><footer class="content__footer"><div class="entry-wrapper"><p class="content__updated">This article was updated on December 14, 2025</p><div class="content__actions"><ul class="content__tag"><li><a href="https://willmafh.github.io/tags/lua/">Lua</a></li></ul><div class="content__share"><button class="btn--icon content__share-button js-content__share-button"><svg width="20" height="20" aria-hidden="true"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#share"></use></svg> <span>Share It</span></button><div class="content__share-popup js-content__share-popup"><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwillmafh.github.io%2Flua-tricks.html&amp;via=willmafh&amp;text=Lua%20tricks" class="js-share twitter" rel="nofollow noopener noreferrer"><svg class="icon" aria-hidden="true" focusable="false"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg> <span>Twitter</span></a></div></div></div></div></footer></article><div class="content__comments"><div class="entry-wrapper"></div></div></main><footer class="footer"><div class="wrapper"><div class="footer__copyright"><p>Powered by Publii</p></div><div class="footer__social"><a href="https://x.com/willmafh" aria-label="X"><svg><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg></a></div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://willmafh.github.io/assets/js/scripts.min.js?v=700105c316933a8202041b6415abb233"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
         for (var i = 0; i < images.length; i++) {
             if (images[i].complete) {
                 images[i].classList.add('is-loaded');
