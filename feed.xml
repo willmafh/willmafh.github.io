@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2025-12-14T22:22:41+08:00</updated>
+    <updated>2025-12-16T21:21:04+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -399,6 +399,56 @@ print(package.loadlib(cjson_path, &quot;*&quot;))  -- true
 -- error here, since &quot;json_encode&quot; is not exported by cjson.so, but hey this is just an example
 local json_encode = package.loadlib(cjson_path, &quot;json_encode&quot;)
 -- using function following...
+</code></pre>
+<h2 id="table-module">table module</h2>
+<h3 id="tableconcat">table.concat</h3>
+<ul>
+<li><code>sep</code> can be one char or more chars</li>
+</ul>
+<pre><code class="language-lua">local t = {&quot;hello&quot;, &quot;world&quot;}
+local r = table.concat(t, &quot;,&quot;)
+
+print(r)  -- &quot;hello,world&quot;
+
+local t = {&quot;hello&quot;, &quot;world&quot;}
+local r = table.concat(t, &quot;||&quot;)
+print(r)  -- &quot;hello||world&quot;
+</code></pre>
+<ul>
+<li>can concat only <code>part of the table</code></li>
+</ul>
+<pre><code class="language-lua">local t = {&quot;prefix&quot;, &quot;hello&quot;, &quot;world&quot;, &quot;postfix&quot;}
+local r = table.concat(t, &quot;, &quot;, 2, 3)
+print(r)  -- &quot;hello, world&quot;
+</code></pre>
+<h3 id="tablepack">table.pack</h3>
+<ul>
+<li>all arguments are packed into a table, and <code>n</code> field is added with the total number of arguments</li>
+</ul>
+<pre><code class="language-lua">local t = table.pack(&quot;hello&quot;, &quot;world&quot;, &quot;you&quot;, &quot;are&quot;, &quot;great&quot;)
+print(type(t))  -- table
+print(t.n)   -- 4
+
+--[[
+1       hello
+2       world
+3       you&#39;re
+4       great
+--]]
+for i, v in ipairs(t) do
+    print(i, v)
+end
+</code></pre>
+<h3 id="tableunpack">table.unpack</h3>
+<ul>
+<li>unpack a table and return each separate element, can unpack a whole table or just a valid range of it</li>
+</ul>
+<pre><code class="language-lua">local t = {1, 2, 3, 4, 5}
+print(table.unpack(t))  -- 1       2       3       4       5
+
+local t = {&quot;hello&quot;, &quot;world&quot;, &quot;you&#39;re&quot;, &quot;great&quot;}
+local n1, n2 = table.unpack(t, 2, 3)
+print(n1, n2)  -- world   you&#39;re
 </code></pre>
 <h2 id="os-module">os module</h2>
 <h3 id="ostime">os.time</h3>
