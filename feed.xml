@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2025-12-16T21:21:04+08:00</updated>
+    <updated>2025-12-17T12:26:40+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -518,6 +518,49 @@ print(ok, what, code)  -- true  exit  0
 -- if the command was terminated by a signal, then the what string will be `signal`
 local ok, what, code = os.execute(&quot;hello&quot;)
 print(ok, what, code)  -- nil  exit  127
+</code></pre>
+<h2 id="math-module">math module</h2>
+<h3 id="mathpi">math.pi</h3>
+<ul>
+<li>if you need to get <code>pi</code>‘s value</li>
+</ul>
+<pre><code class="language-lua">print(math.pi)  -- 3.1415926535898
+</code></pre>
+<h3 id="mathhuge">math.huge</h3>
+<ul>
+<li>the float value HUGE_VAL, a value greater than any other numeric value</li>
+</ul>
+<pre><code class="language-lua">print(math.huge)  -- inf
+</code></pre>
+<h3 id="mathmaxinteger-and-mathmininteger">math.maxinteger and math.mininteger</h3>
+<ul>
+<li>current platform’s maximum and minimum integer values</li>
+</ul>
+<pre><code class="language-lua">print(math.maxinteger)  -- 9223372036854775807
+
+print(math.mininteger)  -- -9223372036854775808
+</code></pre>
+<h3 id="mathmax-and-mathmin">math.max and math.min</h3>
+<ul>
+<li>as the name suggests, returning max and min value of arguments of each function. It would be better to combine with table.unpack function</li>
+</ul>
+<pre><code class="language-lua">local t = {2, 9, 1, 5, 7}
+
+print(math.max(table.unpack(t)))  -- 9
+print(math.min(table.unpack(t)))  -- 1
+</code></pre>
+<h3 id="mathrandomseed-and-mathrandom">math.randomseed and math.random</h3>
+<ul>
+<li>calling <code>math.randomseed</code> without arguments for <code>math.random</code> to generate random number each time</li>
+</ul>
+<pre><code class="language-lua">math.randomseed()
+print(math.random())  -- result will be different each time math.random is called
+</code></pre>
+<ul>
+<li>but calling <code>math.randomseed</code> with fixed arguments for <code>math.random</code> to generate the same number each time, this is good for <code>testing only</code></li>
+</ul>
+<pre><code class="language-lua">math.randomseed(1, 10)
+print(math.random())  -- result will be the same each time math.random is called
 </code></pre>
 <h2 id="misc-stuff">misc stuff</h2>
 <h3 id="z-escape-sequence"><code>\z</code> escape sequence</h3>
