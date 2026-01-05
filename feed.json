@@ -10,6 +10,21 @@
     },
     "items": [
         {
+            "id": "https://willmafh.github.io/git-recipes-2.html",
+            "url": "https://willmafh.github.io/git-recipes-2.html",
+            "title": "git recipes",
+            "summary": "to fully sync commit logs from an upstream repo to your forked repo # add upstream remote if not ready git remote add upstream https://github.com/ORIGINAL_OWNER/ORIGINAL_REPO.git # verify remote, there are origin and remote git remote -v # fetch all updates from both remotes git fetch&hellip;",
+            "content_html": "<ul>\n<li>to fully sync commit logs from an upstream repo to your forked repo</li>\n</ul>\n<pre><code class=\"language-shell\"># add upstream remote if not ready\ngit remote add upstream https://github.com/ORIGINAL_OWNER/ORIGINAL_REPO.git\n\n# verify remote, there are origin and remote\ngit remote -v\n\n# fetch all updates from both remotes\ngit fetch --all\n\ngit checkout main    # switch to main branch\n\n# reset to exactly match upstream\ngit reset --hard upstream/main\n\n# force push to your fork\ngit push --force origin main\n\n# clean up local branch references\ngit fetch --prune origin\ngit fetch --prune upstream\n</code></pre>\n",
+            "author": {
+                "name": "willmafh"
+            },
+            "tags": [
+                   "git"
+            ],
+            "date_published": "2026-01-05T16:23:02+08:00",
+            "date_modified": "2026-01-05T16:26:50+08:00"
+        },
+        {
             "id": "https://willmafh.github.io/lua-tricks.html",
             "url": "https://willmafh.github.io/lua-tricks.html",
             "title": "Effective Lua",

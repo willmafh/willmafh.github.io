@@ -3,12 +3,57 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2025-12-23T15:12:27+08:00</updated>
+    <updated>2026-01-05T16:26:50+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
     <id>https://willmafh.github.io</id>
 
+    <entry>
+        <title>git recipes</title>
+        <author>
+            <name>willmafh</name>
+        </author>
+        <link href="https://willmafh.github.io/git-recipes-2.html"/>
+        <id>https://willmafh.github.io/git-recipes-2.html</id>
+            <category term="git"/>
+
+        <updated>2026-01-05T16:23:02+08:00</updated>
+            <summary type="html">
+                <![CDATA[
+                    to fully sync commit logs from an upstream repo to your forked repo # add upstream remote if not ready git remote add upstream https://github.com/ORIGINAL_OWNER/ORIGINAL_REPO.git # verify remote, there are origin and remote git remote -v # fetch all updates from both remotes git fetch&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <ul>
+<li>to fully sync commit logs from an upstream repo to your forked repo</li>
+</ul>
+<pre><code class="language-shell"># add upstream remote if not ready
+git remote add upstream https://github.com/ORIGINAL_OWNER/ORIGINAL_REPO.git
+
+# verify remote, there are origin and remote
+git remote -v
+
+# fetch all updates from both remotes
+git fetch --all
+
+git checkout main    # switch to main branch
+
+# reset to exactly match upstream
+git reset --hard upstream/main
+
+# force push to your fork
+git push --force origin main
+
+# clean up local branch references
+git fetch --prune origin
+git fetch --prune upstream
+</code></pre>
+
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Effective Lua</title>
         <author>
