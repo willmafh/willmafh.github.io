@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Learning eBPF - willmafh</title><meta name="description" content="NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it bpf program loading calling bpf system call with BPF_PROG_LOAD cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function bpf_check. After&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/learning-ebpf.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Learning eBPF"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it bpf program loading calling bpf system call with BPF_PROG_LOAD cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function bpf_check. After&hellip;"><meta property="og:url" content="https://willmafh.github.io/learning-ebpf.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/learning-ebpf.html"},"headline":"Learning eBPF","datePublished":"2026-01-28T21:35+08:00","dateModified":"2026-01-28T22:01+08:00","description":"NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it bpf program loading calling bpf system call with BPF_PROG_LOAD cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function bpf_check. After&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
+                    opacity: 1;
+                }</style></noscript></head><body class="post-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/">willmafh</a></header><main class="post"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Learning eBPF</h1><div class="feed__meta content__meta"><a href="https://willmafh.github.io/authors/willmafh/" class="feed__author">willmafh</a> <time datetime="2026-01-28T21:35" class="feed__date">January 28, 2026</time></div></div></header></div><div class="entry-wrapper content__entry"><ul><li>NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it</li></ul><h2 id="bpf-program-loading">bpf program loading</h2><ul><li>calling <code>bpf</code> system call with <code>BPF_PROG_LOAD</code> cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function <code>bpf_check</code>. After passing verification, <code>bpf_prog_select_runtime</code> will be used to select interpreter running function <code>__bpf_prog_run</code> or <code>jit</code>ed BPF instructions to native codes</li></ul><pre><code class="language-c">static unsigned int __bpf_prog_run(void *ctx, const struct bpf_insn *insn)
+{
+    // ...
+        /* CALL */
+    JMP_CALL:
+        /* Function call scratches BPF_R1-BPF_R5 registers,
+         * preserves BPF_R6-BPF_R9, and stores return value
+         * into BPF_R0.
+         */
+        BPF_R0 = (__bpf_call_base + insn-&gt;imm)(BPF_R1, BPF_R2, BPF_R3,
+                               BPF_R4, BPF_R5);  // NOTE: where magics happend
+        CONT;
+    // ...
+}
+</code></pre><pre><code class="language-c">void bpf_int_jit_compile(struct bpf_prog *prog)
+{
+    // ...
+    if (image) {
+        // ... after jiting related codes
+        prog-&gt;bpf_func = (void *)image;  // here we replace the interpreter func to jited codes
+        prog-&gt;jited = true;
+        // ...
+    }
+    // ...
+}
+</code></pre><pre><code class="language-c">void bpf_prog_select_runtime(struct bpf_prog *fp)
+{
+    fp-&gt;bpf_func = (void *) __bpf_prog_run;  // NOTE: save interpreter running function
+
+    /* Probe if internal BPF can be JITed */
+    bpf_int_jit_compile(fp);  // here fp-&gt;bpf_func is replaced with jited
+                              // codes if jit is working
+    // ...
+}
+</code></pre><h2 id="bpf-program-running">bpf program running</h2><ul><li>two macros <code>BPF_PROG_RUN</code> and <code>SK_RUN_FILTER</code> are used to run bpf programs</li></ul><pre><code class="language-c">#define BPF_PROG_RUN(filter, ctx)  (*filter-&gt;bpf_func)(ctx, filter-&gt;insnsi)
+
+static int tcf_bpf(struct sk_buff *skb, const struct tc_action *a,
+           struct tcf_result *res)
+{
+    struct tcf_bpf *b = a-&gt;priv;
+    int action, filter_res;
+
+    spin_lock(&amp;b-&gt;tcf_lock);
+        
+    // ...
+    filter_res = BPF_PROG_RUN(b-&gt;filter, skb);
+    // ...
+
+    spin_unlock(&amp;b-&gt;tcf_lock);
+    return action;
+</code></pre><pre><code class="language-c">/* Macro to invoke filter function. */
+#define SK_RUN_FILTER(filter, ctx) \
+    (*filter-&gt;prog-&gt;bpf_func)(ctx, filter-&gt;prog-&gt;insnsi)
+
+int sk_filter(struct sock *sk, struct sk_buff *skb)
+{
+    int err;
+    struct sk_filter *filter;
+        
+    // ...
+
+    rcu_read_lock();
+    filter = rcu_dereference(sk-&gt;sk_filter);
+    if (filter) {
+        // as we can see here, how eBPF program works
+        unsigned int pkt_len = SK_RUN_FILTER(filter, skb);
+
+        err = pkt_len ? pskb_trim(skb, pkt_len) : -EPERM;
+    }
+    rcu_read_unlock();
+
+    return err;
+}
+</code></pre></div><footer class="content__footer"><div class="entry-wrapper"><p class="content__updated">This article was updated on January 28, 2026</p><div class="content__actions"><div class="content__share"><button class="btn--icon content__share-button js-content__share-button"><svg width="20" height="20" aria-hidden="true"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#share"></use></svg> <span>Share It</span></button><div class="content__share-popup js-content__share-popup"><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwillmafh.github.io%2Flearning-ebpf.html&amp;via=willmafh&amp;text=Learning%20eBPF" class="js-share twitter" rel="nofollow noopener noreferrer"><svg class="icon" aria-hidden="true" focusable="false"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg> <span>Twitter</span></a></div></div></div><div class="content__bio bio"><div><h3 class="h4 bio__name"><a href="https://willmafh.github.io/authors/willmafh/" rel="author">willmafh</a></h3></div></div></div><nav class="content__nav"><div class="wrapper"><div class="content__nav-inner"><div class="content__nav-prev"><a href="https://willmafh.github.io/git-recipes-2.html" class="content__nav-link" rel="prev"><div><span>Previous</span> git recipes</div></a></div></div></div></nav></footer></article></main><footer class="footer footer--glued"><div class="wrapper"><div class="footer__copyright"><p>Powered by Publii</p></div><div class="footer__social"><a href="https://x.com/willmafh" aria-label="X"><svg><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg></a></div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://willmafh.github.io/assets/js/scripts.min.js?v=700105c316933a8202041b6415abb233"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
+        for (var i = 0; i < images.length; i++) {
+            if (images[i].complete) {
+                images[i].classList.add('is-loaded');
+            } else {
+                images[i].addEventListener('load', function () {
+                    this.classList.add('is-loaded');
+                }, false);
+            }
+        }</script></body></html>

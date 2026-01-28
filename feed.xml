@@ -3,12 +3,121 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-01-05T16:26:50+08:00</updated>
+    <updated>2026-01-28T22:01:49+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
     <id>https://willmafh.github.io</id>
 
+    <entry>
+        <title>Learning eBPF</title>
+        <author>
+            <name>willmafh</name>
+        </author>
+        <link href="https://willmafh.github.io/learning-ebpf.html"/>
+        <id>https://willmafh.github.io/learning-ebpf.html</id>
+
+        <updated>2026-01-28T21:35:15+08:00</updated>
+            <summary type="html">
+                <![CDATA[
+                    NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it bpf program loading calling bpf system call with BPF_PROG_LOAD cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function bpf_check. After&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <ul>
+<li>NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it</li>
+</ul>
+<h2 id="bpf-program-loading">bpf program loading</h2>
+<ul>
+<li>calling <code>bpf</code> system call with <code>BPF_PROG_LOAD</code> cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function <code>bpf_check</code>. After passing verification, <code>bpf_prog_select_runtime</code> will be used to select interpreter running function <code>__bpf_prog_run</code> or <code>jit</code>ed BPF instructions to native codes</li>
+</ul>
+<pre><code class="language-c">static unsigned int __bpf_prog_run(void *ctx, const struct bpf_insn *insn)
+{
+    // ...
+        /* CALL */
+    JMP_CALL:
+        /* Function call scratches BPF_R1-BPF_R5 registers,
+         * preserves BPF_R6-BPF_R9, and stores return value
+         * into BPF_R0.
+         */
+        BPF_R0 = (__bpf_call_base + insn-&gt;imm)(BPF_R1, BPF_R2, BPF_R3,
+                               BPF_R4, BPF_R5);  // NOTE: where magics happend
+        CONT;
+    // ...
+}
+</code></pre>
+<pre><code class="language-c">void bpf_int_jit_compile(struct bpf_prog *prog)
+{
+    // ...
+    if (image) {
+        // ... after jiting related codes
+        prog-&gt;bpf_func = (void *)image;  // here we replace the interpreter func to jited codes
+        prog-&gt;jited = true;
+        // ...
+    }
+    // ...
+}
+</code></pre>
+<pre><code class="language-c">void bpf_prog_select_runtime(struct bpf_prog *fp)
+{
+    fp-&gt;bpf_func = (void *) __bpf_prog_run;  // NOTE: save interpreter running function
+
+    /* Probe if internal BPF can be JITed */
+    bpf_int_jit_compile(fp);  // here fp-&gt;bpf_func is replaced with jited
+                              // codes if jit is working
+    // ...
+}
+</code></pre>
+<h2 id="bpf-program-running">bpf program running</h2>
+<ul>
+<li>two macros <code>BPF_PROG_RUN</code> and <code>SK_RUN_FILTER</code> are used to run bpf programs</li>
+</ul>
+<pre><code class="language-c">#define BPF_PROG_RUN(filter, ctx)  (*filter-&gt;bpf_func)(ctx, filter-&gt;insnsi)
+
+static int tcf_bpf(struct sk_buff *skb, const struct tc_action *a,
+           struct tcf_result *res)
+{
+    struct tcf_bpf *b = a-&gt;priv;
+    int action, filter_res;
+
+    spin_lock(&amp;b-&gt;tcf_lock);
+        
+    // ...
+    filter_res = BPF_PROG_RUN(b-&gt;filter, skb);
+    // ...
+
+    spin_unlock(&amp;b-&gt;tcf_lock);
+    return action;
+</code></pre>
+<pre><code class="language-c">/* Macro to invoke filter function. */
+#define SK_RUN_FILTER(filter, ctx) \
+    (*filter-&gt;prog-&gt;bpf_func)(ctx, filter-&gt;prog-&gt;insnsi)
+
+int sk_filter(struct sock *sk, struct sk_buff *skb)
+{
+    int err;
+    struct sk_filter *filter;
+        
+    // ...
+
+    rcu_read_lock();
+    filter = rcu_dereference(sk-&gt;sk_filter);
+    if (filter) {
+        // as we can see here, how eBPF program works
+        unsigned int pkt_len = SK_RUN_FILTER(filter, skb);
+
+        err = pkt_len ? pskb_trim(skb, pkt_len) : -EPERM;
+    }
+    rcu_read_unlock();
+
+    return err;
+}
+</code></pre>
+
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>git recipes</title>
         <author>
