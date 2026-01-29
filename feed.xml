@@ -3,29 +3,32 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-01-28T22:01:49+08:00</updated>
+    <updated>2026-01-29T20:34:59+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
     <id>https://willmafh.github.io</id>
 
     <entry>
-        <title>Learning eBPF</title>
+        <title>Linux tracing techs</title>
         <author>
             <name>willmafh</name>
         </author>
         <link href="https://willmafh.github.io/learning-ebpf.html"/>
         <id>https://willmafh.github.io/learning-ebpf.html</id>
+            <category term="tracing"/>
+            <category term="eBPF"/>
 
         <updated>2026-01-28T21:35:15+08:00</updated>
             <summary type="html">
                 <![CDATA[
-                    NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it bpf program loading calling bpf system call with BPF_PROG_LOAD cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function bpf_check. After&hellip;
+                    eBPF NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it bpf program loading calling bpf system call with BPF_PROG_LOAD cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function bpf_check.
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                <ul>
+                <h1 id="ebpf">eBPF</h1>
+<ul>
 <li>NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it</li>
 </ul>
 <h2 id="bpf-program-loading">bpf program loading</h2>
@@ -113,6 +116,46 @@ int sk_filter(struct sock *sk, struct sk_buff *skb)
 
     return err;
 }
+</code></pre>
+<h1 id="ftrace">ftrace</h1>
+<ul>
+<li>NOTE: ftrace implementation based on Linux v2.6.27 codes reading, may update it after reading new version of it</li>
+</ul>
+<h2 id="preconditions">preconditions</h2>
+<ul>
+<li>Linux kernel should be compiled with gcc with <code>-pg</code> flag, which will insert <code>mcount</code> function call at the start of every function, unless you use the function attribute <code>no_instrument_function</code> to suppress profiling of individual functions when compiling</li>
+</ul>
+<pre><code class="language-shell">gcc -c -pg -m32 ftrace.c
+</code></pre>
+<pre><code class="language-c">void foo()
+{
+    printf(&quot;hello world\n&quot;);
+}
+
+#define notrace __attribute__((no_instrument_function))
+
+void notrace bar()
+{
+    printf(&quot;hello&quot;);
+}
+</code></pre>
+<pre><code class="language-asm">.LC0:
+        .string &quot;hello world&quot;
+foo:
+        pushl   %ebp
+        movl    %esp, %ebp
+        subl    $8, %esp
+1:      call        mcount  // NOTE: here -pg flag will insert mcount function call
+        subl    $12, %esp
+        pushl   $.LC0
+        // ...
+bar:
+        pushl   %ebp
+        movl    %esp, %ebp
+        subl    $8, %esp
+        subl    $12, %esp
+        pushl   $.LC0
+        // ...
 </code></pre>
 
             ]]>
