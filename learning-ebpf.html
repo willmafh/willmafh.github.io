@@ -1,6 +1,94 @@
-<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Linux tracing techs - willmafh</title><meta name="description" content="eBPF NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it bpf program loading calling bpf system call with BPF_PROG_LOAD cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function bpf_check."><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/learning-ebpf.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Linux tracing techs"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="eBPF NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it bpf program loading calling bpf system call with BPF_PROG_LOAD cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function bpf_check."><meta property="og:url" content="https://willmafh.github.io/learning-ebpf.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/learning-ebpf.html"},"headline":"Linux tracing techs","datePublished":"2026-01-28T21:35+08:00","dateModified":"2026-01-29T20:34+08:00","description":"eBPF NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it bpf program loading calling bpf system call with BPF_PROG_LOAD cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function bpf_check.","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
+<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Linux tracing techs - willmafh</title><meta name="description" content="kprobes NOTE: kprobes implementation based on Linux v2.6.9, where kprobes first introduced into mainline, may update it after reading newer version of it initialization when Linux is starting, it will call init_kprobes in its process of initialization struct notifier_block *i386die_chain; int register_die_notifier(struct notifier_block *nb) {&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/learning-ebpf.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Linux tracing techs"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="kprobes NOTE: kprobes implementation based on Linux v2.6.9, where kprobes first introduced into mainline, may update it after reading newer version of it initialization when Linux is starting, it will call init_kprobes in its process of initialization struct notifier_block *i386die_chain; int register_die_notifier(struct notifier_block *nb) {&hellip;"><meta property="og:url" content="https://willmafh.github.io/learning-ebpf.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/learning-ebpf.html"},"headline":"Linux tracing techs","datePublished":"2026-01-28T21:35+08:00","dateModified":"2026-01-30T15:42+08:00","description":"kprobes NOTE: kprobes implementation based on Linux v2.6.9, where kprobes first introduced into mainline, may update it after reading newer version of it initialization when Linux is starting, it will call init_kprobes in its process of initialization struct notifier_block *i386die_chain; int register_die_notifier(struct notifier_block *nb) {&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
                     opacity: 1;
-                }</style></noscript></head><body class="post-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/">willmafh</a></header><main class="post"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Linux tracing techs</h1><div class="feed__meta content__meta"><a href="https://willmafh.github.io/authors/willmafh/" class="feed__author">willmafh</a> <time datetime="2026-01-28T21:35" class="feed__date">January 28, 2026</time></div></div></header></div><div class="entry-wrapper content__entry"><h1 id="ebpf">eBPF</h1><ul><li>NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it</li></ul><h2 id="bpf-program-loading">bpf program loading</h2><ul><li>calling <code>bpf</code> system call with <code>BPF_PROG_LOAD</code> cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function <code>bpf_check</code>. After passing verification, <code>bpf_prog_select_runtime</code> will be used to select interpreter running function <code>__bpf_prog_run</code> or <code>jit</code>ed BPF instructions to native codes</li></ul><pre><code class="language-c">static unsigned int __bpf_prog_run(void *ctx, const struct bpf_insn *insn)
+                }</style></noscript></head><body class="post-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/">willmafh</a></header><main class="post"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Linux tracing techs</h1><div class="feed__meta content__meta"><a href="https://willmafh.github.io/authors/willmafh/" class="feed__author">willmafh</a> <time datetime="2026-01-28T21:35" class="feed__date">January 28, 2026</time></div></div></header></div><div class="entry-wrapper content__entry"><h1 id="kprobes">kprobes</h1><ul><li>NOTE: kprobes implementation based on Linux v2.6.9, where kprobes first introduced into mainline, may update it after reading newer version of it</li></ul><h2 id="initialization">initialization</h2><ul><li>when Linux is starting, it will call <code>init_kprobes</code> in its process of initialization</li></ul><pre><code class="language-c">struct notifier_block *i386die_chain;
+
+int register_die_notifier(struct notifier_block *nb)
+{
+    // ...
+    err = notifier_chain_register(&amp;i386die_chain, nb);
+    // ...
+    return err;
+}
+</code></pre><pre><code class="language-c">static struct notifier_block kprobe_exceptions_nb = {
+    .notifier_call = kprobe_exceptions_notify,
+    .priority = 0x7fffffff /* we need to notified first */
+};
+
+static int __init init_kprobes(void)
+{
+    int i, err = 0;
+
+    // init kprobe_table hash table where registered kprobes stored
+    for (i = 0; i &lt; KPROBE_TABLE_SIZE; i++)
+        INIT_HLIST_HEAD(&amp;kprobe_table[i]);
+
+    // register kprobe_exceptions_nb to i386die_chain
+    err = register_die_notifier(&amp;kprobe_exceptions_nb);
+    return err;
+}
+
+__initcall(init_kprobes);
+</code></pre><h2 id="how-to-take-effect">how to take effect</h2><ul><li>call <code>register_kprobe</code> to register a kprobe we want to probe</li></ul><pre><code class="language-c">int register_kprobe(struct kprobe *p)
+{
+    // ...
+        // NOTE: add new kprobe to corresponding hash table slot
+    hlist_add_head(&amp;p-&gt;hlist,
+               &amp;kprobe_table[hash_ptr(p-&gt;addr, KPROBE_HASH_BITS)]);
+
+    arch_prepare_kprobe(p);
+    p-&gt;opcode = *p-&gt;addr;  // save original instruction of probe address
+    *p-&gt;addr = BREAKPOINT_INSTRUCTION;  // replace it with breakpoint instruction
+    // ...
+}
+</code></pre><ul><li>when execution comes to the probing address, an <code>int3</code> happened and <code>do_int3</code> will be called then, and it will notify our register kprobes, from there, <code>pre_handler</code>/<code>break_handler</code> inside kprobe will be called</li></ul><pre><code class="language-asm">ENTRY(int3)
+    // ...
+    call do_int3  // here to call do_int3
+    // ...
+</code></pre><pre><code class="language-c">#ifdef CONFIG_KPROBES
+asmlinkage int do_int3(struct pt_regs *regs, long error_code)
+{
+    // here to notify registered kprobes
+    if (notify_die(DIE_INT3, &quot;int3&quot;, regs, error_code, 3, SIGTRAP)
+            == NOTIFY_STOP)
+        return 1;
+    // back to normal ...
+}
+#endif
+</code></pre><pre><code class="language-c">static inline int notify_die(enum die_val val,char *str,struct pt_regs *regs,long err,int trap, int sig)
+{
+    struct die_args args = { .regs=regs, .str=str, .err=err, .trapnr=trap,.signr=sig };
+    // here kprobe_exceptions_notify inside kprobe_exceptions_nb will be called
+    return notifier_call_chain(&amp;i386die_chain, val, &amp;args);
+}
+</code></pre><pre><code class="language-c">int kprobe_exceptions_notify(struct notifier_block *self, unsigned long val,
+                 void *data)
+{
+    struct die_args *args = (struct die_args *)data;
+    switch (val) {
+    case DIE_INT3:
+        // p-&gt;break_handler &amp; p-&gt;pre_handler
+        if (kprobe_handler(args-&gt;regs))  // handler cb inside
+            return NOTIFY_STOP;
+        break;
+        // ... p-&gt;post_handler
+        // ... p-&gt;fault_handler
+    }
+    return NOTIFY_DONE;
+}
+</code></pre><pre><code class="language-c">static inline int kprobe_handler(struct pt_regs *regs)
+{
+    struct kprobe *p;
+    u8 *addr = (u8 *) (regs-&gt;eip - 1);
+    // ...
+    p = get_kprobe(addr);
+    // ...
+    if (p-&gt;pre_handler(p, regs)) {  // NOTE: where magic happened
+        /* handler has already set things up, so skip ss setup */
+        return 1;
+    }
+    // ...
+}
+</code></pre><h1 id="ebpf">eBPF</h1><ul><li>NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it</li></ul><h2 id="bpf-program-loading">bpf program loading</h2><ul><li>calling <code>bpf</code> system call with <code>BPF_PROG_LOAD</code> cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function <code>bpf_check</code>. After passing verification, <code>bpf_prog_select_runtime</code> will be used to select interpreter running function <code>__bpf_prog_run</code> or <code>jit</code>ed BPF instructions to native codes</li></ul><pre><code class="language-c">static unsigned int __bpf_prog_run(void *ctx, const struct bpf_insn *insn)
 {
     // ...
         /* CALL */
@@ -73,7 +161,7 @@ int sk_filter(struct sock *sk, struct sk_buff *skb)
 
     return err;
 }
-</code></pre><h1 id="ftrace">ftrace</h1><ul><li>NOTE: ftrace implementation based on Linux v2.6.27 codes reading, may update it after reading new version of it</li></ul><h2 id="preconditions">preconditions</h2><ul><li>Linux kernel should be compiled with gcc with <code>-pg</code> flag, which will insert <code>mcount</code> function call at the start of every function, unless you use the function attribute <code>no_instrument_function</code> to suppress profiling of individual functions when compiling</li></ul><pre><code class="language-shell">gcc -c -pg -m32 ftrace.c
+</code></pre><h1 id="ftrace">ftrace</h1><ul><li>NOTE: ftrace implementation based on Linux v2.6.27 codes reading, may update it after reading new version of it</li></ul><h2 id="perequisite-knowledge">perequisite knowledge</h2><ul><li>Linux kernel should be compiled with gcc with <code>-pg</code> flag, which will insert <code>mcount</code> function call at the start of every function, unless you use the function attribute <code>no_instrument_function</code> to suppress profiling of individual functions when compiling</li></ul><pre><code class="language-shell">gcc -c -pg -m32 ftrace.c
 </code></pre><pre><code class="language-c">void foo()
 {
     printf(&quot;hello world\n&quot;);
@@ -102,7 +190,7 @@ bar:
         subl    $12, %esp
         pushl   $.LC0
         // ...
-</code></pre></div><footer class="content__footer"><div class="entry-wrapper"><p class="content__updated">This article was updated on January 29, 2026</p><div class="content__actions"><ul class="content__tag"><li><a href="https://willmafh.github.io/tags/ebpf/">eBPF</a></li><li><a href="https://willmafh.github.io/tags/tracing/">tracing</a></li></ul><div class="content__share"><button class="btn--icon content__share-button js-content__share-button"><svg width="20" height="20" aria-hidden="true"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#share"></use></svg> <span>Share It</span></button><div class="content__share-popup js-content__share-popup"><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwillmafh.github.io%2Flearning-ebpf.html&amp;via=willmafh&amp;text=Linux%20tracing%20techs" class="js-share twitter" rel="nofollow noopener noreferrer"><svg class="icon" aria-hidden="true" focusable="false"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg> <span>Twitter</span></a></div></div></div><div class="content__bio bio"><div><h3 class="h4 bio__name"><a href="https://willmafh.github.io/authors/willmafh/" rel="author">willmafh</a></h3></div></div></div><nav class="content__nav"><div class="wrapper"><div class="content__nav-inner"><div class="content__nav-prev"><a href="https://willmafh.github.io/git-recipes-2.html" class="content__nav-link" rel="prev"><div><span>Previous</span> git recipes</div></a></div></div></div></nav></footer></article></main><footer class="footer footer--glued"><div class="wrapper"><div class="footer__copyright"><p>Powered by Publii</p></div><div class="footer__social"><a href="https://x.com/willmafh" aria-label="X"><svg><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg></a></div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://willmafh.github.io/assets/js/scripts.min.js?v=700105c316933a8202041b6415abb233"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
+</code></pre></div><footer class="content__footer"><div class="entry-wrapper"><p class="content__updated">This article was updated on January 30, 2026</p><div class="content__actions"><ul class="content__tag"><li><a href="https://willmafh.github.io/tags/ebpf/">eBPF</a></li><li><a href="https://willmafh.github.io/tags/tracing/">tracing</a></li></ul><div class="content__share"><button class="btn--icon content__share-button js-content__share-button"><svg width="20" height="20" aria-hidden="true"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#share"></use></svg> <span>Share It</span></button><div class="content__share-popup js-content__share-popup"><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwillmafh.github.io%2Flearning-ebpf.html&amp;via=willmafh&amp;text=Linux%20tracing%20techs" class="js-share twitter" rel="nofollow noopener noreferrer"><svg class="icon" aria-hidden="true" focusable="false"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg> <span>Twitter</span></a></div></div></div><div class="content__bio bio"><div><h3 class="h4 bio__name"><a href="https://willmafh.github.io/authors/willmafh/" rel="author">willmafh</a></h3></div></div></div><nav class="content__nav"><div class="wrapper"><div class="content__nav-inner"><div class="content__nav-prev"><a href="https://willmafh.github.io/git-recipes-2.html" class="content__nav-link" rel="prev"><div><span>Previous</span> git recipes</div></a></div></div></div></nav></footer></article></main><footer class="footer footer--glued"><div class="wrapper"><div class="footer__copyright"><p>Powered by Publii</p></div><div class="footer__social"><a href="https://x.com/willmafh" aria-label="X"><svg><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg></a></div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://willmafh.github.io/assets/js/scripts.min.js?v=700105c316933a8202041b6415abb233"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
         for (var i = 0; i < images.length; i++) {
             if (images[i].complete) {
                 images[i].classList.add('is-loaded');

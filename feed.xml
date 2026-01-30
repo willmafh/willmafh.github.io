@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-01-29T20:34:59+08:00</updated>
+    <updated>2026-01-30T15:42:39+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -22,12 +22,123 @@
         <updated>2026-01-28T21:35:15+08:00</updated>
             <summary type="html">
                 <![CDATA[
-                    eBPF NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it bpf program loading calling bpf system call with BPF_PROG_LOAD cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function bpf_check.
+                    kprobes NOTE: kprobes implementation based on Linux v2.6.9, where kprobes first introduced into mainline, may update it after reading newer version of it initialization when Linux is starting, it will call init_kprobes in its process of initialization struct notifier_block *i386die_chain; int register_die_notifier(struct notifier_block *nb) {&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                <h1 id="ebpf">eBPF</h1>
+                <h1 id="kprobes">kprobes</h1>
+<ul>
+<li>NOTE: kprobes implementation based on Linux v2.6.9, where kprobes first introduced into mainline, may update it after reading newer version of it</li>
+</ul>
+<h2 id="initialization">initialization</h2>
+<ul>
+<li>when Linux is starting, it will call <code>init_kprobes</code> in its process of initialization</li>
+</ul>
+<pre><code class="language-c">struct notifier_block *i386die_chain;
+
+int register_die_notifier(struct notifier_block *nb)
+{
+    // ...
+    err = notifier_chain_register(&amp;i386die_chain, nb);
+    // ...
+    return err;
+}
+</code></pre>
+<pre><code class="language-c">static struct notifier_block kprobe_exceptions_nb = {
+    .notifier_call = kprobe_exceptions_notify,
+    .priority = 0x7fffffff /* we need to notified first */
+};
+
+static int __init init_kprobes(void)
+{
+    int i, err = 0;
+
+    // init kprobe_table hash table where registered kprobes stored
+    for (i = 0; i &lt; KPROBE_TABLE_SIZE; i++)
+        INIT_HLIST_HEAD(&amp;kprobe_table[i]);
+
+    // register kprobe_exceptions_nb to i386die_chain
+    err = register_die_notifier(&amp;kprobe_exceptions_nb);
+    return err;
+}
+
+__initcall(init_kprobes);
+</code></pre>
+<h2 id="how-to-take-effect">how to take effect</h2>
+<ul>
+<li>call <code>register_kprobe</code> to register a kprobe we want to probe</li>
+</ul>
+<pre><code class="language-c">int register_kprobe(struct kprobe *p)
+{
+    // ...
+        // NOTE: add new kprobe to corresponding hash table slot
+    hlist_add_head(&amp;p-&gt;hlist,
+               &amp;kprobe_table[hash_ptr(p-&gt;addr, KPROBE_HASH_BITS)]);
+
+    arch_prepare_kprobe(p);
+    p-&gt;opcode = *p-&gt;addr;  // save original instruction of probe address
+    *p-&gt;addr = BREAKPOINT_INSTRUCTION;  // replace it with breakpoint instruction
+    // ...
+}
+</code></pre>
+<ul>
+<li>when execution comes to the probing address, an <code>int3</code> happened and <code>do_int3</code> will be called then, and it will notify our register kprobes, from there, <code>pre_handler</code>/<code>break_handler</code> inside kprobe will be called</li>
+</ul>
+<pre><code class="language-asm">ENTRY(int3)
+    // ...
+    call do_int3  // here to call do_int3
+    // ...
+</code></pre>
+<pre><code class="language-c">#ifdef CONFIG_KPROBES
+asmlinkage int do_int3(struct pt_regs *regs, long error_code)
+{
+    // here to notify registered kprobes
+    if (notify_die(DIE_INT3, &quot;int3&quot;, regs, error_code, 3, SIGTRAP)
+            == NOTIFY_STOP)
+        return 1;
+    // back to normal ...
+}
+#endif
+</code></pre>
+<pre><code class="language-c">static inline int notify_die(enum die_val val,char *str,struct pt_regs *regs,long err,int trap, int sig)
+{
+    struct die_args args = { .regs=regs, .str=str, .err=err, .trapnr=trap,.signr=sig };
+    // here kprobe_exceptions_notify inside kprobe_exceptions_nb will be called
+    return notifier_call_chain(&amp;i386die_chain, val, &amp;args);
+}
+</code></pre>
+<pre><code class="language-c">int kprobe_exceptions_notify(struct notifier_block *self, unsigned long val,
+                 void *data)
+{
+    struct die_args *args = (struct die_args *)data;
+    switch (val) {
+    case DIE_INT3:
+        // p-&gt;break_handler &amp; p-&gt;pre_handler
+        if (kprobe_handler(args-&gt;regs))  // handler cb inside
+            return NOTIFY_STOP;
+        break;
+        // ... p-&gt;post_handler
+        // ... p-&gt;fault_handler
+    }
+    return NOTIFY_DONE;
+}
+</code></pre>
+<pre><code class="language-c">static inline int kprobe_handler(struct pt_regs *regs)
+{
+    struct kprobe *p;
+    u8 *addr = (u8 *) (regs-&gt;eip - 1);
+    // ...
+    p = get_kprobe(addr);
+    // ...
+    if (p-&gt;pre_handler(p, regs)) {  // NOTE: where magic happened
+        /* handler has already set things up, so skip ss setup */
+        return 1;
+    }
+    // ...
+}
+</code></pre>
+<h1 id="ebpf">eBPF</h1>
 <ul>
 <li>NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it</li>
 </ul>
@@ -121,7 +232,7 @@ int sk_filter(struct sock *sk, struct sk_buff *skb)
 <ul>
 <li>NOTE: ftrace implementation based on Linux v2.6.27 codes reading, may update it after reading new version of it</li>
 </ul>
-<h2 id="preconditions">preconditions</h2>
+<h2 id="perequisite-knowledge">perequisite knowledge</h2>
 <ul>
 <li>Linux kernel should be compiled with gcc with <code>-pg</code> flag, which will insert <code>mcount</code> function call at the start of every function, unless you use the function attribute <code>no_instrument_function</code> to suppress profiling of individual functions when compiling</li>
 </ul>
