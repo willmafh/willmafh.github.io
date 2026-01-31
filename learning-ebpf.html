@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Linux tracing techs - willmafh</title><meta name="description" content="kprobes NOTE: kprobes implementation based on Linux v2.6.9, where kprobes first introduced into mainline, may update it after reading newer version of it initialization when Linux is starting, it will call init_kprobes in its process of initialization struct notifier_block *i386die_chain; int register_die_notifier(struct notifier_block *nb) {&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/learning-ebpf.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Linux tracing techs"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="kprobes NOTE: kprobes implementation based on Linux v2.6.9, where kprobes first introduced into mainline, may update it after reading newer version of it initialization when Linux is starting, it will call init_kprobes in its process of initialization struct notifier_block *i386die_chain; int register_die_notifier(struct notifier_block *nb) {&hellip;"><meta property="og:url" content="https://willmafh.github.io/learning-ebpf.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/learning-ebpf.html"},"headline":"Linux tracing techs","datePublished":"2026-01-28T21:35+08:00","dateModified":"2026-01-30T15:42+08:00","description":"kprobes NOTE: kprobes implementation based on Linux v2.6.9, where kprobes first introduced into mainline, may update it after reading newer version of it initialization when Linux is starting, it will call init_kprobes in its process of initialization struct notifier_block *i386die_chain; int register_die_notifier(struct notifier_block *nb) {&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
+<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Linux tracing techs - willmafh</title><meta name="description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe initialization when Linux is starting, it will call init_kprobes&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/learning-ebpf.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Linux tracing techs"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe initialization when Linux is starting, it will call init_kprobes&hellip;"><meta property="og:url" content="https://willmafh.github.io/learning-ebpf.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/learning-ebpf.html"},"headline":"Linux tracing techs","datePublished":"2026-01-28T21:35+08:00","dateModified":"2026-01-31T12:16+08:00","description":"kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe initialization when Linux is starting, it will call init_kprobes&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
                     opacity: 1;
-                }</style></noscript></head><body class="post-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/">willmafh</a></header><main class="post"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Linux tracing techs</h1><div class="feed__meta content__meta"><a href="https://willmafh.github.io/authors/willmafh/" class="feed__author">willmafh</a> <time datetime="2026-01-28T21:35" class="feed__date">January 28, 2026</time></div></div></header></div><div class="entry-wrapper content__entry"><h1 id="kprobes">kprobes</h1><ul><li>NOTE: kprobes implementation based on Linux v2.6.9, where kprobes first introduced into mainline, may update it after reading newer version of it</li></ul><h2 id="initialization">initialization</h2><ul><li>when Linux is starting, it will call <code>init_kprobes</code> in its process of initialization</li></ul><pre><code class="language-c">struct notifier_block *i386die_chain;
+                }</style></noscript></head><body class="post-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/">willmafh</a></header><main class="post"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Linux tracing techs</h1><div class="feed__meta content__meta"><a href="https://willmafh.github.io/authors/willmafh/" class="feed__author">willmafh</a> <time datetime="2026-01-28T21:35" class="feed__date">January 28, 2026</time></div></div></header></div><div class="entry-wrapper content__entry"><h1 id="kprobes">kprobes</h1><h2 id="brief-history">brief history</h2><ul><li>Linux v2.6.9 introduced <code>kprobe</code>s into its mainline, but only for <code>i386</code></li><li>v2.6.10 begins to add kprobes support for <code>x86_64</code></li><li>Linux v2.6.12 allows multiple kprobes at the same address</li><li>v2.6.13 starts to support <code>kretprobe</code></li></ul><h2 id="initialization">initialization</h2><ul><li>when Linux is starting, it will call <code>init_kprobes</code> in its process of initialization</li></ul><pre><code class="language-c">struct notifier_block *i386die_chain;
 
 int register_die_notifier(struct notifier_block *nb)
 {
@@ -18,20 +18,24 @@ static int __init init_kprobes(void)
 {
     int i, err = 0;
 
-    // init kprobe_table hash table where registered kprobes stored
-    for (i = 0; i &lt; KPROBE_TABLE_SIZE; i++)
-        INIT_HLIST_HEAD(&amp;kprobe_table[i]);
+    for (i = 0; i &lt; KPROBE_TABLE_SIZE; i++) {
+        INIT_HLIST_HEAD(&amp;kprobe_table[i]);  // for kprobes
+        INIT_HLIST_HEAD(&amp;kretprobe_inst_table[i]);  // for kretprobes
+    }
 
-    // register kprobe_exceptions_nb to i386die_chain
-    err = register_die_notifier(&amp;kprobe_exceptions_nb);
+    err = arch_init_kprobes();  // here to register a kprobe for trampoline
+    if (!err)
+        // register kprobe_exceptions_nb to i386die_chain
+        err = register_die_notifier(&amp;kprobe_exceptions_nb);
+
     return err;
 }
 
 __initcall(init_kprobes);
-</code></pre><h2 id="how-to-take-effect">how to take effect</h2><ul><li>call <code>register_kprobe</code> to register a kprobe we want to probe</li></ul><pre><code class="language-c">int register_kprobe(struct kprobe *p)
+</code></pre><h2 id="how-does-kprobe-work">how does kprobe work</h2><ul><li>call <code>register_kprobe</code> to register a kprobe we want to probe</li></ul><pre><code class="language-c">int register_kprobe(struct kprobe *p)
 {
     // ...
-        // NOTE: add new kprobe to corresponding hash table slot
+    // NOTE: add new kprobe to corresponding hash table slot
     hlist_add_head(&amp;p-&gt;hlist,
                &amp;kprobe_table[hash_ptr(p-&gt;addr, KPROBE_HASH_BITS)]);
 
@@ -86,6 +90,78 @@ asmlinkage int do_int3(struct pt_regs *regs, long error_code)
         /* handler has already set things up, so skip ss setup */
         return 1;
     }
+    // ...
+}
+</code></pre><h2 id="how-does-kretprobe-work">how does kretprobe work</h2><ul><li>in order to support <code>kretprobe</code>, at boot time, <code>init_kprobes</code> will first register a kprobe at the <code>trampoline</code>, which is an arbitrary piece of code – typically just a nop instruction</li></ul><pre><code class="language-c">void kretprobe_trampoline_holder(void)
+{
+asm volatile (  &quot;.global kretprobe_trampoline\n&quot;
+        &quot;kretprobe_trampoline: \n&quot;
+        &quot;nop\n&quot;);
+}
+
+static struct kprobe trampoline_p = {
+    .addr = (kprobe_opcode_t *) &amp;kretprobe_trampoline,
+    .pre_handler = trampoline_probe_handler
+};
+
+int __init arch_init_kprobes(void)
+{
+    return register_kprobe(&amp;trampoline_p);
+}
+</code></pre><ul><li>when you call <code>register_kretprobe</code>, kprobes establishes a kprobe at the entry to the function and when the probed function is called and this probe is hit, kprobes saves a copy of the return address, and replaces the return address with the address of a “trampoline.”</li></ul><pre><code class="language-c">void arch_prepare_kretprobe(struct kretprobe *rp, struct pt_regs *regs)
+{
+    unsigned long *sara = (unsigned long *)&amp;regs-&gt;esp;
+    struct kretprobe_instance *ri;
+
+    if ((ri = get_free_rp_inst(rp)) != NULL) {
+        ri-&gt;rp = rp;
+        ri-&gt;task = current;
+        ri-&gt;ret_addr = (kprobe_opcode_t *) *sara;  // important here! save original fn return addr
+
+        // replace the return addr with trampoline addr
+        *sara = (unsigned long) &amp;kretprobe_trampoline;
+
+        // ...
+    }
+    // ...
+}
+
+static int pre_handler_kretprobe(struct kprobe *p, struct pt_regs *regs)
+{
+    struct kretprobe *rp = container_of(p, struct kretprobe, kp);
+
+    /*TODO: consider to only swap the RA after the last pre_handler fired */
+    arch_prepare_kretprobe(rp, regs);
+    return 0;
+}
+
+int register_kretprobe(struct kretprobe *rp)
+{
+    // ...
+    rp-&gt;kp.pre_handler = pre_handler_kretprobe;
+
+    /* Establish function entry probe point */
+    if ((ret = register_kprobe(&amp;rp-&gt;kp)) != 0) {
+    }
+    // ...
+}
+</code></pre><ul><li>so that when function return, control passes to the trampoline, which is already been registered as a kprobe in <code>init_kprobes</code>, and that probe is hit, so its pre_handler <code>trampoline_probe_handler</code> will be called</li><li>after calling the user-specified handler associated with the kretprobe, the original function return address will be restored, and execution will be resumed</li></ul><pre><code class="language-c">int trampoline_probe_handler(struct kprobe *p, struct pt_regs *regs)
+{
+    // ...
+    head = kretprobe_inst_table_head(current);
+
+    hlist_for_each_entry_safe(ri, node, tmp, head, hlist) {
+        if (ri-&gt;task != current)
+            continue;
+
+        if (ri-&gt;rp &amp;&amp; ri-&gt;rp-&gt;handler)
+            ri-&gt;rp-&gt;handler(ri, regs);  // called user-specified handler
+
+        orig_ret_address = (unsigned long)ri-&gt;ret_addr;
+        // ...
+    }
+
+    regs-&gt;eip = orig_ret_address;  // restore the original return addr
     // ...
 }
 </code></pre><h1 id="ebpf">eBPF</h1><ul><li>NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it</li></ul><h2 id="bpf-program-loading">bpf program loading</h2><ul><li>calling <code>bpf</code> system call with <code>BPF_PROG_LOAD</code> cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function <code>bpf_check</code>. After passing verification, <code>bpf_prog_select_runtime</code> will be used to select interpreter running function <code>__bpf_prog_run</code> or <code>jit</code>ed BPF instructions to native codes</li></ul><pre><code class="language-c">static unsigned int __bpf_prog_run(void *ctx, const struct bpf_insn *insn)
@@ -190,7 +266,7 @@ bar:
         subl    $12, %esp
         pushl   $.LC0
         // ...
-</code></pre></div><footer class="content__footer"><div class="entry-wrapper"><p class="content__updated">This article was updated on January 30, 2026</p><div class="content__actions"><ul class="content__tag"><li><a href="https://willmafh.github.io/tags/ebpf/">eBPF</a></li><li><a href="https://willmafh.github.io/tags/tracing/">tracing</a></li></ul><div class="content__share"><button class="btn--icon content__share-button js-content__share-button"><svg width="20" height="20" aria-hidden="true"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#share"></use></svg> <span>Share It</span></button><div class="content__share-popup js-content__share-popup"><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwillmafh.github.io%2Flearning-ebpf.html&amp;via=willmafh&amp;text=Linux%20tracing%20techs" class="js-share twitter" rel="nofollow noopener noreferrer"><svg class="icon" aria-hidden="true" focusable="false"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg> <span>Twitter</span></a></div></div></div><div class="content__bio bio"><div><h3 class="h4 bio__name"><a href="https://willmafh.github.io/authors/willmafh/" rel="author">willmafh</a></h3></div></div></div><nav class="content__nav"><div class="wrapper"><div class="content__nav-inner"><div class="content__nav-prev"><a href="https://willmafh.github.io/git-recipes-2.html" class="content__nav-link" rel="prev"><div><span>Previous</span> git recipes</div></a></div></div></div></nav></footer></article></main><footer class="footer footer--glued"><div class="wrapper"><div class="footer__copyright"><p>Powered by Publii</p></div><div class="footer__social"><a href="https://x.com/willmafh" aria-label="X"><svg><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg></a></div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://willmafh.github.io/assets/js/scripts.min.js?v=700105c316933a8202041b6415abb233"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
+</code></pre></div><footer class="content__footer"><div class="entry-wrapper"><p class="content__updated">This article was updated on January 31, 2026</p><div class="content__actions"><ul class="content__tag"><li><a href="https://willmafh.github.io/tags/ebpf/">eBPF</a></li><li><a href="https://willmafh.github.io/tags/tracing/">tracing</a></li></ul><div class="content__share"><button class="btn--icon content__share-button js-content__share-button"><svg width="20" height="20" aria-hidden="true"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#share"></use></svg> <span>Share It</span></button><div class="content__share-popup js-content__share-popup"><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwillmafh.github.io%2Flearning-ebpf.html&amp;via=willmafh&amp;text=Linux%20tracing%20techs" class="js-share twitter" rel="nofollow noopener noreferrer"><svg class="icon" aria-hidden="true" focusable="false"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg> <span>Twitter</span></a></div></div></div><div class="content__bio bio"><div><h3 class="h4 bio__name"><a href="https://willmafh.github.io/authors/willmafh/" rel="author">willmafh</a></h3></div></div></div><nav class="content__nav"><div class="wrapper"><div class="content__nav-inner"><div class="content__nav-prev"><a href="https://willmafh.github.io/git-recipes-2.html" class="content__nav-link" rel="prev"><div><span>Previous</span> git recipes</div></a></div></div></div></nav></footer></article></main><footer class="footer footer--glued"><div class="wrapper"><div class="footer__copyright"><p>Powered by Publii</p></div><div class="footer__social"><a href="https://x.com/willmafh" aria-label="X"><svg><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg></a></div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://willmafh.github.io/assets/js/scripts.min.js?v=700105c316933a8202041b6415abb233"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
         for (var i = 0; i < images.length; i++) {
             if (images[i].complete) {
                 images[i].classList.add('is-loaded');
