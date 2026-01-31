@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-01-31T12:46:04+08:00</updated>
+    <updated>2026-01-31T17:50:07+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -17,6 +17,7 @@
         <link href="https://willmafh.github.io/learning-ebpf.html"/>
         <id>https://willmafh.github.io/learning-ebpf.html</id>
             <category term="tracing"/>
+            <category term="kprobes"/>
             <category term="eBPF"/>
 
         <updated>2026-01-28T21:35:15+08:00</updated>
@@ -35,6 +36,7 @@
 <li>Linux v2.6.12 allows multiple kprobes at the same address</li>
 <li>v2.6.13 starts to support <code>kretprobe</code></li>
 <li>v2.6.14 groups kprobes related functions to section <code>.kprobes.text</code>, so that kprobes to these codes will be rejected</li>
+<li>v2.6.15 updates: using <code>percpu</code> infra to manage some internal variables; using <code>RCU(Read-Copy-Update) list</code> to manage kprobes; more checks on kprobes register, including kernel module address check</li>
 </ul>
 <h2 id="initialization">initialization</h2>
 <ul>
