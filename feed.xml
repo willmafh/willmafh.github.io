@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-01-31T12:16:24+08:00</updated>
+    <updated>2026-01-31T12:46:04+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -22,7 +22,7 @@
         <updated>2026-01-28T21:35:15+08:00</updated>
             <summary type="html">
                 <![CDATA[
-                    kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe initialization when Linux is starting, it will call init_kprobes&hellip;
+                    kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;
                 ]]>
             </summary>
         <content type="html">
@@ -34,6 +34,7 @@
 <li>v2.6.10 begins to add kprobes support for <code>x86_64</code></li>
 <li>Linux v2.6.12 allows multiple kprobes at the same address</li>
 <li>v2.6.13 starts to support <code>kretprobe</code></li>
+<li>v2.6.14 groups kprobes related functions to section <code>.kprobes.text</code>, so that kprobes to these codes will be rejected</li>
 </ul>
 <h2 id="initialization">initialization</h2>
 <ul>
@@ -75,18 +76,46 @@ __initcall(init_kprobes);
 </code></pre>
 <h2 id="how-does-kprobe-work">how does kprobe work</h2>
 <ul>
+<li>helper functions</li>
+</ul>
+<pre><code class="language-c">/* Attach to insert probes on any functions which should be ignored */
+#define __kprobes  __attribute__((__section__(&quot;.kprobes.text&quot;)))
+
+void __kprobes arch_copy_kprobe(struct kprobe *p)
+{
+    memcpy(p-&gt;ainsn.insn, p-&gt;addr, MAX_INSN_SIZE * sizeof(kprobe_opcode_t));
+    p-&gt;opcode = *p-&gt;addr;
+}
+
+void __kprobes arch_arm_kprobe(struct kprobe *p)
+{
+    *p-&gt;addr = BREAKPOINT_INSTRUCTION;
+    // ...
+}
+
+static int __kprobes in_kprobes_functions(unsigned long addr)
+{
+    if (addr &gt;= (unsigned long)__kprobes_text_start
+        &amp;&amp; addr &lt; (unsigned long)__kprobes_text_end)
+        return -EINVAL;
+    return 0;
+}
+</code></pre>
+<ul>
 <li>call <code>register_kprobe</code> to register a kprobe we want to probe</li>
 </ul>
 <pre><code class="language-c">int register_kprobe(struct kprobe *p)
 {
     // ...
+    if ((ret = in_kprobes_functions((unsigned long) p-&gt;addr)) != 0)
+        return ret;
+
+    // ...
     // NOTE: add new kprobe to corresponding hash table slot
     hlist_add_head(&amp;p-&gt;hlist,
                &amp;kprobe_table[hash_ptr(p-&gt;addr, KPROBE_HASH_BITS)]);
-
-    arch_prepare_kprobe(p);
-    p-&gt;opcode = *p-&gt;addr;  // save original instruction of probe address
-    *p-&gt;addr = BREAKPOINT_INSTRUCTION;  // replace it with breakpoint instruction
+        
+    arch_arm_kprobe(p);
     // ...
 }
 </code></pre>

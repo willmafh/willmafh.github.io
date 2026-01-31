@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Linux tracing techs - willmafh</title><meta name="description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe initialization when Linux is starting, it will call init_kprobes&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/learning-ebpf.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Linux tracing techs"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe initialization when Linux is starting, it will call init_kprobes&hellip;"><meta property="og:url" content="https://willmafh.github.io/learning-ebpf.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/learning-ebpf.html"},"headline":"Linux tracing techs","datePublished":"2026-01-28T21:35+08:00","dateModified":"2026-01-31T12:16+08:00","description":"kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe initialization when Linux is starting, it will call init_kprobes&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
+<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Linux tracing techs - willmafh</title><meta name="description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/learning-ebpf.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Linux tracing techs"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;"><meta property="og:url" content="https://willmafh.github.io/learning-ebpf.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/learning-ebpf.html"},"headline":"Linux tracing techs","datePublished":"2026-01-28T21:35+08:00","dateModified":"2026-01-31T12:46+08:00","description":"kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
                     opacity: 1;
-                }</style></noscript></head><body class="post-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/">willmafh</a></header><main class="post"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Linux tracing techs</h1><div class="feed__meta content__meta"><a href="https://willmafh.github.io/authors/willmafh/" class="feed__author">willmafh</a> <time datetime="2026-01-28T21:35" class="feed__date">January 28, 2026</time></div></div></header></div><div class="entry-wrapper content__entry"><h1 id="kprobes">kprobes</h1><h2 id="brief-history">brief history</h2><ul><li>Linux v2.6.9 introduced <code>kprobe</code>s into its mainline, but only for <code>i386</code></li><li>v2.6.10 begins to add kprobes support for <code>x86_64</code></li><li>Linux v2.6.12 allows multiple kprobes at the same address</li><li>v2.6.13 starts to support <code>kretprobe</code></li></ul><h2 id="initialization">initialization</h2><ul><li>when Linux is starting, it will call <code>init_kprobes</code> in its process of initialization</li></ul><pre><code class="language-c">struct notifier_block *i386die_chain;
+                }</style></noscript></head><body class="post-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/">willmafh</a></header><main class="post"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Linux tracing techs</h1><div class="feed__meta content__meta"><a href="https://willmafh.github.io/authors/willmafh/" class="feed__author">willmafh</a> <time datetime="2026-01-28T21:35" class="feed__date">January 28, 2026</time></div></div></header></div><div class="entry-wrapper content__entry"><h1 id="kprobes">kprobes</h1><h2 id="brief-history">brief history</h2><ul><li>Linux v2.6.9 introduced <code>kprobe</code>s into its mainline, but only for <code>i386</code></li><li>v2.6.10 begins to add kprobes support for <code>x86_64</code></li><li>Linux v2.6.12 allows multiple kprobes at the same address</li><li>v2.6.13 starts to support <code>kretprobe</code></li><li>v2.6.14 groups kprobes related functions to section <code>.kprobes.text</code>, so that kprobes to these codes will be rejected</li></ul><h2 id="initialization">initialization</h2><ul><li>when Linux is starting, it will call <code>init_kprobes</code> in its process of initialization</li></ul><pre><code class="language-c">struct notifier_block *i386die_chain;
 
 int register_die_notifier(struct notifier_block *nb)
 {
@@ -32,16 +32,40 @@ static int __init init_kprobes(void)
 }
 
 __initcall(init_kprobes);
-</code></pre><h2 id="how-does-kprobe-work">how does kprobe work</h2><ul><li>call <code>register_kprobe</code> to register a kprobe we want to probe</li></ul><pre><code class="language-c">int register_kprobe(struct kprobe *p)
+</code></pre><h2 id="how-does-kprobe-work">how does kprobe work</h2><ul><li>helper functions</li></ul><pre><code class="language-c">/* Attach to insert probes on any functions which should be ignored */
+#define __kprobes  __attribute__((__section__(&quot;.kprobes.text&quot;)))
+
+void __kprobes arch_copy_kprobe(struct kprobe *p)
 {
+    memcpy(p-&gt;ainsn.insn, p-&gt;addr, MAX_INSN_SIZE * sizeof(kprobe_opcode_t));
+    p-&gt;opcode = *p-&gt;addr;
+}
+
+void __kprobes arch_arm_kprobe(struct kprobe *p)
+{
+    *p-&gt;addr = BREAKPOINT_INSTRUCTION;
+    // ...
+}
+
+static int __kprobes in_kprobes_functions(unsigned long addr)
+{
+    if (addr &gt;= (unsigned long)__kprobes_text_start
+        &amp;&amp; addr &lt; (unsigned long)__kprobes_text_end)
+        return -EINVAL;
+    return 0;
+}
+</code></pre><ul><li>call <code>register_kprobe</code> to register a kprobe we want to probe</li></ul><pre><code class="language-c">int register_kprobe(struct kprobe *p)
+{
+    // ...
+    if ((ret = in_kprobes_functions((unsigned long) p-&gt;addr)) != 0)
+        return ret;
+
     // ...
     // NOTE: add new kprobe to corresponding hash table slot
     hlist_add_head(&amp;p-&gt;hlist,
                &amp;kprobe_table[hash_ptr(p-&gt;addr, KPROBE_HASH_BITS)]);
-
-    arch_prepare_kprobe(p);
-    p-&gt;opcode = *p-&gt;addr;  // save original instruction of probe address
-    *p-&gt;addr = BREAKPOINT_INSTRUCTION;  // replace it with breakpoint instruction
+        
+    arch_arm_kprobe(p);
     // ...
 }
 </code></pre><ul><li>when execution comes to the probing address, an <code>int3</code> happened and <code>do_int3</code> will be called then, and it will notify our register kprobes, from there, <code>pre_handler</code>/<code>break_handler</code> inside kprobe will be called</li></ul><pre><code class="language-asm">ENTRY(int3)
