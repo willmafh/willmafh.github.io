@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-01-31T17:50:07+08:00</updated>
+    <updated>2026-01-31T23:11:09+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -37,6 +37,11 @@
 <li>v2.6.13 starts to support <code>kretprobe</code></li>
 <li>v2.6.14 groups kprobes related functions to section <code>.kprobes.text</code>, so that kprobes to these codes will be rejected</li>
 <li>v2.6.15 updates: using <code>percpu</code> infra to manage some internal variables; using <code>RCU(Read-Copy-Update) list</code> to manage kprobes; more checks on kprobes register, including kernel module address check</li>
+<li>v2.6.16 updates: more kprobes rejects on kernel functions; refactor kprobes register functions to check whether we are probing a kernel module</li>
+<li>v2.6.17 <code>i386</code> updates its <code>kretprobe_trampoline_holder</code>; updates <code>kprobe_fault_handler</code></li>
+<li>v2.6.18 kprobes registers for <code>page fault notifications</code> when their is an active probe registered; <code>tcpprobe</code> module to probe <code>tcp_sendmsg</code></li>
+<li>v2.6.19 add <code>symbol_name</code> and <code>offset</code> fields to <code>struct kprobe</code> so you can directly using function name to register kprobes; <code>dccp_probe</code> module to probe <code>dccp_sendmsg</code></li>
+<li>v2.6.21 add <code>debugfs</code> support for kprobes, related stuff can be seen under <code>/sys/kernel/debug/kprobes</code>, assuming debugfs is mounted under /sys/kernel/</li>
 </ul>
 <h2 id="initialization">initialization</h2>
 <ul>
