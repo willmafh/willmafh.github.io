@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-01-31T23:11:09+08:00</updated>
+    <updated>2026-02-01T11:26:56+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -14,8 +14,8 @@
         <author>
             <name>willmafh</name>
         </author>
-        <link href="https://willmafh.github.io/learning-ebpf.html"/>
-        <id>https://willmafh.github.io/learning-ebpf.html</id>
+        <link href="https://willmafh.github.io/linux-tracing-techs.html"/>
+        <id>https://willmafh.github.io/linux-tracing-techs.html</id>
             <category term="tracing"/>
             <category term="kprobes"/>
             <category term="eBPF"/>
