@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-01T11:26:56+08:00</updated>
+    <updated>2026-02-01T16:05:01+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -41,7 +41,13 @@
 <li>v2.6.17 <code>i386</code> updates its <code>kretprobe_trampoline_holder</code>; updates <code>kprobe_fault_handler</code></li>
 <li>v2.6.18 kprobes registers for <code>page fault notifications</code> when their is an active probe registered; <code>tcpprobe</code> module to probe <code>tcp_sendmsg</code></li>
 <li>v2.6.19 add <code>symbol_name</code> and <code>offset</code> fields to <code>struct kprobe</code> so you can directly using function name to register kprobes; <code>dccp_probe</code> module to probe <code>dccp_sendmsg</code></li>
-<li>v2.6.21 add <code>debugfs</code> support for kprobes, related stuff can be seen under <code>/sys/kernel/debug/kprobes</code>, assuming debugfs is mounted under /sys/kernel/</li>
+<li>v2.6.21 add basic <code>debugfs</code> support for kprobes, <code>/sys/kernel/debug/kprobes/list</code> lists all registered probes on the system</li>
+<li>v2.6.22 more on <code>debugfs</code>, add <code>/sys/kernel/debug/kprobes/enabled</code> to globally turn registered kprobes on/off and the default value is on</li>
+<li>v2.6.24 add basic <code>kretprobe blacklist</code> support</li>
+<li>v2.6.25 kretprobe supports optional user-specified <code>entry_handler</code> which runs on function entry and also supports <code>private data</code> which can pass data between <code>entry_handler</code> and <code>ret_handler</code></li>
+<li>v2.6.26 add basic <code>kprobe blacklist</code> support; batch registration/unregistration of a group of probes interfaces</li>
+<li>v2.6.29 add <code>module notifier call back</code>, which will check kprobes on the module; add <code>flags</code> field to <code>struct kprobe</code> to mark kprobe gone <code>KPROBE_FLAG_GONE</code> and remove its instruction buffer</li>
+<li>v2.6.30 enable/disable probes interfaces, if kp-&gt;flags is set <code>KPROBE_FLAG_DISABLED</code>, that kp will be registered but disabled, so, it’s handlers aren’t hit until calling enable_kprobe(kp)</li>
 </ul>
 <h2 id="initialization">initialization</h2>
 <ul>
@@ -267,6 +273,21 @@ int register_kretprobe(struct kretprobe *rp)
     regs-&gt;eip = orig_ret_address;  // restore the original return addr
     // ...
 }
+</code></pre>
+<h2 id="debugfs-interface-for-kprobes">debugfs interface for kprobes</h2>
+<ul>
+<li>to list all registered probes on the system</li>
+</ul>
+<pre><code class="language-bash">cat /sys/kernel/debug/kprobes/list
+</code></pre>
+<ul>
+<li>to globally turn registered kprobes on or off</li>
+</ul>
+<pre><code class="language-bash">cat /sys/kernel/debug/kprobes/enabled
+# turn on
+echo 1 &gt; /sys/kernel/debug/kprobes/enabled
+# turn off
+echo 0 &gt; /sys/kernel/debug/kprobes/enabled
 </code></pre>
 <h1 id="ebpf">eBPF</h1>
 <ul>
