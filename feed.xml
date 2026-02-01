@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-01T21:37:48+08:00</updated>
+    <updated>2026-02-01T22:48:41+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -306,6 +306,11 @@ echo 0 &gt; /proc/sys/debug/kprobes-optimization
 # turn on
 echo 1 &gt; /proc/sys/debug/kprobes-optimization
 </code></pre>
+<h1 id="uprobes">uprobes</h1>
+<h2 id="brief-history-1">brief history</h2>
+<ul>
+<li>Linux v3.5 introduce <code>uprobe</code> into its mainline</li>
+</ul>
 <h1 id="ebpf">eBPF</h1>
 <ul>
 <li>NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it</li>
