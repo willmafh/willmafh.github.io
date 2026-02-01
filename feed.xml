@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-01T16:05:01+08:00</updated>
+    <updated>2026-02-01T21:37:48+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -48,6 +48,9 @@
 <li>v2.6.26 add basic <code>kprobe blacklist</code> support; batch registration/unregistration of a group of probes interfaces</li>
 <li>v2.6.29 add <code>module notifier call back</code>, which will check kprobes on the module; add <code>flags</code> field to <code>struct kprobe</code> to mark kprobe gone <code>KPROBE_FLAG_GONE</code> and remove its instruction buffer</li>
 <li>v2.6.30 enable/disable probes interfaces, if kp-&gt;flags is set <code>KPROBE_FLAG_DISABLED</code>, that kp will be registered but disabled, so, it’s handlers aren’t hit until calling enable_kprobe(kp)</li>
+<li>v2.6.33 updates kprobe blacklist; check whether kprobe re-registered</li>
+<li>v2.6.34 kprobe optimization <code>KPROBE_FLAG_OPTIMIZED</code> for <code>i386</code> and <code>x86_64</code>;  kprobes sysctl interface <code>/proc/sys/debug/kprobes-optimization</code> to control kprobe optimization</li>
+<li>v2.6.39 do not optimize in the entry code due to the unstable stack handling</li>
 </ul>
 <h2 id="initialization">initialization</h2>
 <ul>
@@ -288,6 +291,20 @@ int register_kretprobe(struct kretprobe *rp)
 echo 1 &gt; /sys/kernel/debug/kprobes/enabled
 # turn off
 echo 0 &gt; /sys/kernel/debug/kprobes/enabled
+</code></pre>
+<h2 id="kprobes-sysctl-interface">kprobes sysctl interface</h2>
+<ul>
+<li>check kprobes optimization status</li>
+</ul>
+<pre><code class="language-bash">cat /proc/sys/debug/kprobes-optimization
+</code></pre>
+<ul>
+<li>turn on or off kprobes optimization</li>
+</ul>
+<pre><code class="language-bash"># turn off
+echo 0 &gt; /proc/sys/debug/kprobes-optimization
+# turn on
+echo 1 &gt; /proc/sys/debug/kprobes-optimization
 </code></pre>
 <h1 id="ebpf">eBPF</h1>
 <ul>
