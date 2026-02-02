@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-01T22:48:41+08:00</updated>
+    <updated>2026-02-02T21:03:18+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -309,8 +309,205 @@ echo 1 &gt; /proc/sys/debug/kprobes-optimization
 <h1 id="uprobes">uprobes</h1>
 <h2 id="brief-history-1">brief history</h2>
 <ul>
-<li>Linux v3.5 introduce <code>uprobe</code> into its mainline</li>
+<li>Linux v3.5 introduced <code>uprobe</code> into its mainline</li>
 </ul>
+<h1 id="tracepoints">tracepoints</h1>
+<ul>
+<li>NOTE: tracepoints implementation based on Linux v2.6.28 codes reading, may update it after reading new version of it</li>
+</ul>
+<h2 id="brief-history-2">brief history</h2>
+<ul>
+<li>Linux v2.6.28 introduced <code>tracepoint</code> into its mainline</li>
+<li>v2.6.29 splits original <code>DEFINE_TRACE</code> into <code>DECLARE_TRACE</code> and <code>DEFINE_TRACE</code>; if the tracepoint has to be used in kernel modules, an <code>EXPORT_TRACEPOINT_SYMBOL_GPL</code> or <code>EXPORT_TRACEPOINT_SYMBOL</code> can be used to export the defined tracepoints</li>
+<li>v2.6.30 the macro <code>TRACE_EVENT</code> was introduced, which is far more powerful because it automates the “boilerplate” code needed to bridge the gap between a kernel function and a monitoring tool like <code>perf</code> or <code>ftrace</code></li>
+<li>v2.6.31 all <code>predefined</code> tracepoint events were grouped under <code>include/trace/events</code> by organizing events into subsystems, and introduced <code>/sys/kernel/debug/tracing/events</code>  interface, giving each event its own directory with <code>enable</code> file</li>
+<li>v2.6.32 add <code>regfunc</code> and <code>unregfunc</code> fields to <code>struct tracepoint</code> for more flexible functionality</li>
+<li>v2.6.33 more macros <code>DECLARE_EVENT_CLASS</code> <code>DEFINE_EVENT</code> <code>DEFINE_EVENT_PRINT</code> to facilitate tracepoint usage for other tools</li>
+<li>v2.6.35 update <code>struct tracepoint</code> and change related macros internal</li>
+<li>v2.6.37 using <code>JUMP_LABEL</code> macro to test whether a tracepoint is enabled or not, and its related stuff</li>
+<li>v2.6.38 using <code>__tracepoints_ptrs</code> section for iteration on the tracepoints; macro <code>DECLARE_TRACE_CONDITION</code></li>
+<li>v3.0 performance optimization using asm <code>goto __jump_table</code></li>
+</ul>
+<h2 id="how-does-tracepoint-work">how does tracepoint work</h2>
+<ul>
+<li>using <code>DEFINE_TRACE</code>, <code>TPPROTO</code> and <code>TPARGS</code> to define a tracepoint</li>
+<li>the tracepoint name will be put in <code>__tracepoints_strings</code> section, and the tracepoint itself will be put in <code>__tracepoints</code> section</li>
+</ul>
+<pre><code class="language-c">DEFINE_TRACE(sched_wakeup_new,
+    TPPROTO(struct rq *rq, struct task_struct *p),
+    TPARGS(rq, p));
+
+# the above example will expand to the following codes
+
+# this is the tracepoint function called in other important places
+static inline void trace_sched_wakeup_new(struct rq *rq,
+                                          struct task_struct *p) {
+
+  static const char __tpstrtab_sched_wakeup_new[]
+      __attribute__((section(&quot;__tracepoints_strings&quot;))) =
+          &quot;sched_wakeup_new:TPPROTO(struct rq *rq, struct task_struct *p)&quot;;
+
+  static struct tracepoint __tracepoint_sched_wakeup_new
+      __attribute__((section(&quot;__tracepoints&quot;), aligned(8))) = {
+          __tpstrtab_sched_wakeup_new,
+                  0,
+                  NULL
+          };
+  // when tracepoint does not activated, then just skip it
+  if (unlikely(__tracepoint_sched_wakeup_new.state))
+    do {
+      void **it_func;
+      rcu_read_lock_sched();
+      it_func = rcu_dereference((&amp;__tracepoint_sched_wakeup_new)-&gt;funcs);
+      if (it_func) {
+        do {
+          // call tracepoint probe funcs here!!
+          ((void (*)(struct rq * rq, struct task_struct * p))(*it_func))(rq, p);
+        } while (*(++it_func));
+      }
+      rcu_read_unlock_sched();
+    } while (0);
+}
+</code></pre>
+<ul>
+<li>when you want to register a probe function to some tracepoint, just define the probe function according to the signature of proto of tracepoint definition, then call the generated register function, which will then call <code>tracepoint_probe_register</code> to connect a probe to a tracepoint</li>
+</ul>
+<pre><code class="language-c">static void set_tracepoint(struct tracepoint_entry **entry,
+    struct tracepoint *elem, int active)
+{
+    // ...
+    // assign funcs in tracepoint entry to tracepoint
+    rcu_assign_pointer(elem-&gt;funcs, (*entry)-&gt;funcs);
+    elem-&gt;state = active;  // then activate the tracepoint
+}
+
+void tracepoint_update_probe_range(struct tracepoint *begin,
+    struct tracepoint *end)
+{
+    // ...
+    for (iter = begin; iter &lt; end; iter++) {
+        mark_entry = get_tracepoint(iter-&gt;name);
+        if (mark_entry) {
+            set_tracepoint(&amp;mark_entry, iter,
+                    !!mark_entry-&gt;refcount);
+        } // ...
+    }
+    // ...
+}
+
+static void tracepoint_update_probes(void)
+{
+    /* Core kernel tracepoints */
+    tracepoint_update_probe_range(__start___tracepoints,
+        __stop___tracepoints);
+    /* tracepoints in modules. */
+    module_update_tracepoints();
+}
+
+int tracepoint_probe_register(const char *name, void *probe)
+{
+    // ...
+    // add probe to corresponding tracepoint entry
+    old = tracepoint_entry_add_probe(entry, probe);
+    // ...
+    // move probe funcs in tracepoint entry to corresponding tracepoint
+    tracepoint_update_probes();
+    // ...
+}
+</code></pre>
+<pre><code class="language-c">static inline int register_trace_sched_wakeup_new(void (*probe)(struct rq *rq, struct task_struct *p)) {
+  return tracepoint_probe_register(&quot;sched_wakeup_new:TPPROTO(struct rq *rq, struct task_struct *p)&quot;, (void *)probe);
+}
+</code></pre>
+<pre><code class="language-c">struct tracepoint {
+  const char *name;
+  int state;
+  void **funcs;  // all registered probe functions for this tracepoint
+} __attribute__((aligned(8)));
+</code></pre>
+<ul>
+<li>tracepoint actual calling example</li>
+</ul>
+<pre><code class="language-c"># sys_fork will call do_fork, and it will call wake_up_new_task
+void wake_up_new_task(struct task_struct *p, unsigned long clone_flags)
+{
+    // ...
+    trace_sched_wakeup_new(rq, p);  // calling our above defined tracepoint here
+    // ...
+}
+</code></pre>
+<h3 id="tracepoints-in-modules">tracepoints in modules</h3>
+<ul>
+<li>when you run insmod or modprobe, the user-space utility eventually calls <code>sys_init_module</code> to pass the binary blob (the .ko file) to the kernel</li>
+</ul>
+<pre><code class="language-c">struct module
+{
+    // ...
+#ifdef CONFIG_TRACEPOINTS
+    struct tracepoint *tracepoints;
+    unsigned int num_tracepoints;
+#endif
+    // ...
+};
+</code></pre>
+<pre><code class="language-c">static noinline struct module *load_module(void __user *umod,
+                  unsigned long len,
+                  const char __user *uargs)
+{
+    // ...
+#ifdef CONFIG_TRACEPOINTS
+    mod-&gt;tracepoints = section_objs(hdr, sechdrs, secstrings,
+                    &quot;__tracepoints&quot;,
+                    sizeof(*mod-&gt;tracepoints),
+                    &amp;mod-&gt;num_tracepoints);
+#endif
+    // ...
+    if (!mod-&gt;taints) {
+        // ...
+#ifdef CONFIG_TRACEPOINTS
+        tracepoint_update_probe_range(mod-&gt;tracepoints,
+            mod-&gt;tracepoints + mod-&gt;num_tracepoints);
+#endif
+    }
+    // ...
+}
+
+asmlinkage long
+sys_init_module(void __user *umod,
+        unsigned long len,
+        const char __user *uargs)
+{
+    // ...
+    mod = load_module(umod, len, uargs);
+    // ...
+}
+
+oid module_update_tracepoints(void)
+{
+    // ...
+    list_for_each_entry(mod, &amp;modules, list)
+        if (!mod-&gt;taints)
+            tracepoint_update_probe_range(mod-&gt;tracepoints,
+                mod-&gt;tracepoints + mod-&gt;num_tracepoints);
+    // ...
+}
+</code></pre>
+<h3 id="debugfs-interface-for-tracepoints">debugfs interface for tracepoints</h3>
+<ul>
+<li>we can easily enable tracepoints by using the <code>event tracing</code> framework</li>
+</ul>
+<pre><code class="language-bash"># to enable event &#39;sched_wakeup&#39;
+echo 1 &gt; /sys/kernel/debug/tracing/events/sched/sched_wakeup/enable
+
+# to disable it
+echo 0 &gt; /sys/kernel/debug/tracing/events/sched/sched_wakeup/enable
+
+# to enable all events in sched subsystem
+echo 1 &gt; /sys/kernel/debug/tracing/events/sched/enable
+
+# to eanble all events
+echo 1 &gt; /sys/kernel/debug/tracing/events/enable
+</code></pre>
 <h1 id="ebpf">eBPF</h1>
 <ul>
 <li>NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it</li>
