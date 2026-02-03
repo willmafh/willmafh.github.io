@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-02T21:07:40+08:00</updated>
+    <updated>2026-02-03T22:55:05+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -19,6 +19,7 @@
             <category term="uprobes"/>
             <category term="tracing"/>
             <category term="tracepoints"/>
+            <category term="perf"/>
             <category term="kprobes"/>
             <category term="eBPF"/>
 
@@ -510,6 +511,19 @@ echo 1 &gt; /sys/kernel/debug/tracing/events/sched/enable
 # to eanble all events
 echo 1 &gt; /sys/kernel/debug/tracing/events/enable
 </code></pre>
+<h1 id="perf-subsystem">perf subsystem</h1>
+<ul>
+<li>NOTE: perf subsystem implementation based on Linux v2.6.32 codes reading, may update it after reading new version of it</li>
+</ul>
+<h2 id="brief-history-3">brief history</h2>
+<ul>
+<li>Linux v2.6.31 first introduced <code>Performance Counters for Linux(PCL)</code> into its mainline for just hardware counters, so the syscall is <code>sys_perf_counter_open</code></li>
+<li>but Linux v2.6.32 changed the syscall to <code>sys_perf_event_open</code>, and expanded the framework to do more than just hw counters</li>
+</ul>
+<h2 id="how-does-perf-event-work">how does perf event work</h2>
+<ul>
+<li>the following calling procedure only means calling timeline, not caller-callee callgraph, so that we can see how perf event subsystem is inited: start_kernel –&gt; sched_init –&gt; <code>perf_event_init</code> –&gt; check_bugs –&gt; identify_boot_cpu –&gt; <code>init_hw_perf_events</code> –&gt; <code>intel_pmu_init</code>/<code>amd_pmu_init</code> –&gt; <code>perf_events_lapic_init</code> –&gt; rest_init –&gt; kernel_init –&gt; do_basic_setup –&gt; do_initcalls –&gt; <code>perf_event_sysfs_init</code></li>
+</ul>
 <h1 id="ebpf">eBPF</h1>
 <ul>
 <li>NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it</li>
