@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-03T22:55:05+08:00</updated>
+    <updated>2026-02-04T20:51:08+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -528,6 +528,10 @@ echo 1 &gt; /sys/kernel/debug/tracing/events/enable
 <ul>
 <li>NOTE: eBPF implementation based on Linux v4.0 codes reading, may update it after reading new version of it</li>
 </ul>
+<h2 id="brief-history-4">brief history</h2>
+<ul>
+<li>v4.1 introduced more prog types <code>BPF_PROG_TYPE_KPROBE</code> <code>BPF_PROG_TYPE_SCHED_CLS</code> <code>BPF_PROG_TYPE_SCHED_ACT</code></li>
+</ul>
 <h2 id="bpf-program-loading">bpf program loading</h2>
 <ul>
 <li>calling <code>bpf</code> system call with <code>BPF_PROG_LOAD</code> cmd arg, bpf program will be copied into kernel and run through eBPF verifier by function <code>bpf_check</code>. After passing verification, <code>bpf_prog_select_runtime</code> will be used to select interpreter running function <code>__bpf_prog_run</code> or <code>jit</code>ed BPF instructions to native codes</li>
@@ -612,6 +616,19 @@ int sk_filter(struct sock *sk, struct sk_buff *skb)
     rcu_read_unlock();
 
     return err;
+}
+</code></pre>
+<h2 id="how-does-bpf-program-connect-to-kprobes">how does bpf program connect to kprobes</h2>
+<pre><code class="language-c">static int perf_event_set_bpf_prog(struct perf_event *event, u32 prog_fd)
+{
+    struct bpf_prog *prog;
+
+    // ...
+    prog = bpf_prog_get(prog_fd);  // loads the ebpf program
+    // ...
+    event-&gt;tp_event-&gt;prog = prog;  // here finally attaches the ebpf program
+
+    return 0;
 }
 </code></pre>
 <h1 id="ftrace">ftrace</h1>
