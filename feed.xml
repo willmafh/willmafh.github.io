@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-06T16:08:46+08:00</updated>
+    <updated>2026-02-06T17:01:14+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -530,7 +530,8 @@ echo 1 &gt; /sys/kernel/debug/tracing/events/enable
 </ul>
 <h2 id="brief-history-4">brief history</h2>
 <ul>
-<li>v4.1 introduced more prog types <code>BPF_PROG_TYPE_KPROBE</code> <code>BPF_PROG_TYPE_SCHED_CLS</code> <code>BPF_PROG_TYPE_SCHED_ACT</code></li>
+<li>v3.17 first introduced <code>kernel/bpf</code> directory into linux kernel</li>
+<li>v4.1 introduced more prog types, especially <code>BPF_PROG_TYPE_KPROBE</code> allowing bpf program to attach to kprobes; more bpf helper functions like <code>bpf_get_prandom_u32</code> and <code>bpf_get_smp_processor_id</code> etc</li>
 </ul>
 <h2 id="bpf-program-loading">bpf program loading</h2>
 <ul>
