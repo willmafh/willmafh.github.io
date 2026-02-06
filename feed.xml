@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-05T23:16:56+08:00</updated>
+    <updated>2026-02-06T16:08:46+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -654,8 +654,9 @@ void __init perf_event_init(void)
     // ...
 }
 </code></pre>
-<pre><code>* `init_kprobe_trace` will be called after `perf_event_init` is done inside `rest_init`, it will register `probes_write` write handler, which will be triggered when we echo `/sys/kernel/debug/tracing/kprobe_events`
-</code></pre>
+<ul>
+<li><code>init_kprobe_trace</code> will be called after <code>perf_event_init</code> is done inside <code>rest_init</code>, it will register <code>probes_write</code> write handler, which will be triggered when we echo <code>/sys/kernel/debug/tracing/kprobe_events</code></li>
+</ul>
 <pre><code class="language-c">static const struct file_operations kprobe_events_ops = {
     // ...
     .write      = probes_write,
@@ -788,7 +789,7 @@ static ssize_t probes_write(struct file *file, const char __user *buffer,
         prog_type = BPF_PROG_TYPE_KPROBE;  // kprobe bpf type program
     } // ...
         
-        if (is_kprobe || is_kretprobe) {
+    if (is_kprobe || is_kretprobe) {
         if (is_kprobe)
             event += 7;
         else
@@ -910,7 +911,7 @@ static int perf_try_init_event(struct pmu *pmu, struct perf_event *event)
 {
     // ...
     event-&gt;pmu = pmu;
-        // here finally perf_tp_event_init in struct pmu perf_tracepoint is called
+    // here finally perf_tp_event_init in struct pmu perf_tracepoint is called
     ret = pmu-&gt;event_init(event);
     // ...
 }
@@ -954,17 +955,37 @@ SYSCALL_DEFINE5(perf_event_open,
     event = perf_event_alloc(&amp;attr, cpu, task, group_leader, NULL,
                  NULL, NULL, cgroup_fd);
     // ...
+    event_file = anon_inode_getfile(&quot;[perf_event]&quot;, &amp;perf_fops, event,
+                    f_flags);  // here create the event_file and register perf_fops for it
+    // ...
 }
 </code></pre>
 <ul>
-<li>attaching bpf to kprobe and enable it</li>
+<li>in <code>perf_event_open</code> syscall, it will create an event_file by calling <code>anon_inode_getfile</code> and register <code>perf_fops</code> for it, which is important to attach bpf to kprobe and finally enable it</li>
+</ul>
+<pre><code class="language-c">static long perf_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+    struct perf_event *event = file-&gt;private_data;
+    // ...
+    ret = _perf_ioctl(event, cmd, arg);
+    // ...
+}
+
+static const struct file_operations perf_fops = {
+    // ...
+    .unlocked_ioctl     = perf_ioctl,
+    // ...
+};
+</code></pre>
+<ul>
+<li>using <code>PERF_EVENT_IOC_ENABLE</code> to activate the perf event, and using <code>PERF_EVENT_IOC_SET_BPF</code> to attach bpf program to kprobe</li>
 </ul>
 <pre><code class="language-c">// ... copied from above
     ioctl(efd, PERF_EVENT_IOC_ENABLE, 0);
     ioctl(efd, PERF_EVENT_IOC_SET_BPF, fd);
 // ...
-</code></pre>
-<pre><code class="language-c">static int perf_event_set_bpf_prog(struct perf_event *event, u32 prog_fd)
+
+static int perf_event_set_bpf_prog(struct perf_event *event, u32 prog_fd)
 {
     struct bpf_prog *prog;
 
@@ -974,6 +995,58 @@ SYSCALL_DEFINE5(perf_event_open,
     event-&gt;tp_event-&gt;prog = prog;  // here finally attaches the ebpf program
 
     return 0;
+}
+
+static long _perf_ioctl(struct perf_event *event, unsigned int cmd, unsigned long arg)
+{
+    void (*func)(struct perf_event *);
+    u32 flags = arg;
+
+    switch (cmd) {
+    case PERF_EVENT_IOC_ENABLE:
+        func = _perf_event_enable;  // later calls func, event-&gt;state = PERF_EVENT_STATE_ACTIVE;
+        break;
+    // ...
+    case PERF_EVENT_IOC_SET_BPF:
+        return perf_event_set_bpf_prog(event, arg);
+    // ...
+    }
+}
+</code></pre>
+<ul>
+<li>when the kprobe is hit, <code>kprobe_dispatcher</code> will be called, and finally to call the attached bpf program</li>
+</ul>
+<pre><code class="language-c">unsigned int trace_call_bpf(struct bpf_prog *prog, void *ctx)
+{
+    unsigned int ret;
+    // ...
+    ret = BPF_PROG_RUN(prog, ctx);  // here to finally run bpf program
+    // ...
+}		
+
+static void
+kprobe_perf_func(struct trace_kprobe *tk, struct pt_regs *regs)
+{
+    struct ftrace_event_call *call = &amp;tk-&gt;tp.call;
+    struct bpf_prog *prog = call-&gt;prog;
+    // ...
+
+    if (prog &amp;&amp; !trace_call_bpf(prog, regs))  // call bpf program
+        return;
+    // ...
+}
+
+static int kprobe_dispatcher(struct kprobe *kp, struct pt_regs *regs)
+{
+    struct trace_kprobe *tk = container_of(kp, struct trace_kprobe, rp.kp);
+
+    tk-&gt;nhit++;
+    // ...
+#ifdef CONFIG_PERF_EVENTS
+    if (tk-&gt;tp.flags &amp; TP_FLAG_PROFILE)
+        kprobe_perf_func(tk, regs);  // inside to call bpf program
+#endif
+    return 0;   /* We don&#39;t tweek kernel, so just return 0 */
 }
 </code></pre>
 <h1 id="ftrace">ftrace</h1>

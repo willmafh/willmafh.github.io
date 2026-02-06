@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Linux tracing techs - willmafh</title><meta name="description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/linux-tracing-techs.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Linux tracing techs"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;"><meta property="og:url" content="https://willmafh.github.io/linux-tracing-techs.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/linux-tracing-techs.html"},"headline":"Linux tracing techs","datePublished":"2026-01-28T21:35+08:00","dateModified":"2026-02-05T23:16+08:00","description":"kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
+<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Linux tracing techs - willmafh</title><meta name="description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/linux-tracing-techs.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Linux tracing techs"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;"><meta property="og:url" content="https://willmafh.github.io/linux-tracing-techs.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=b09e72b2ca1a38c969d44da51bb22509"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/linux-tracing-techs.html"},"headline":"Linux tracing techs","datePublished":"2026-01-28T21:35+08:00","dateModified":"2026-02-06T16:08+08:00","description":"kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
                     opacity: 1;
                 }</style></noscript></head><body class="post-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/">willmafh</a></header><main class="post"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Linux tracing techs</h1><div class="feed__meta content__meta"><a href="https://willmafh.github.io/authors/willmafh/" class="feed__author">willmafh</a> <time datetime="2026-01-28T21:35" class="feed__date">January 28, 2026</time></div></div></header></div><div class="entry-wrapper content__entry"><h1 id="kprobes">kprobes</h1><h2 id="brief-history">brief history</h2><ul><li>Linux v2.6.9 introduced <code>kprobe</code>s into its mainline, but only for <code>i386</code></li><li>v2.6.10 begins to add kprobes support for <code>x86_64</code></li><li>Linux v2.6.12 allows multiple kprobes at the same address</li><li>v2.6.13 starts to support <code>kretprobe</code></li><li>v2.6.14 groups kprobes related functions to section <code>.kprobes.text</code>, so that kprobes to these codes will be rejected</li><li>v2.6.15 updates: using <code>percpu</code> infra to manage some internal variables; using <code>RCU(Read-Copy-Update) list</code> to manage kprobes; more checks on kprobes register, including kernel module address check</li><li>v2.6.16 updates: more kprobes rejects on kernel functions; refactor kprobes register functions to check whether we are probing a kernel module</li><li>v2.6.17 <code>i386</code> updates its <code>kretprobe_trampoline_holder</code>; updates <code>kprobe_fault_handler</code></li><li>v2.6.18 kprobes registers for <code>page fault notifications</code> when their is an active probe registered; <code>tcpprobe</code> module to probe <code>tcp_sendmsg</code></li><li>v2.6.19 add <code>symbol_name</code> and <code>offset</code> fields to <code>struct kprobe</code> so you can directly using function name to register kprobes; <code>dccp_probe</code> module to probe <code>dccp_sendmsg</code></li><li>v2.6.21 add basic <code>debugfs</code> support for kprobes, <code>/sys/kernel/debug/kprobes/list</code> lists all registered probes on the system</li><li>v2.6.22 more on <code>debugfs</code>, add <code>/sys/kernel/debug/kprobes/enabled</code> to globally turn registered kprobes on/off and the default value is on</li><li>v2.6.24 add basic <code>kretprobe blacklist</code> support</li><li>v2.6.25 kretprobe supports optional user-specified <code>entry_handler</code> which runs on function entry and also supports <code>private data</code> which can pass data between <code>entry_handler</code> and <code>ret_handler</code></li><li>v2.6.26 add basic <code>kprobe blacklist</code> support; batch registration/unregistration of a group of probes interfaces</li><li>v2.6.29 add <code>module notifier call back</code>, which will check kprobes on the module; add <code>flags</code> field to <code>struct kprobe</code> to mark kprobe gone <code>KPROBE_FLAG_GONE</code> and remove its instruction buffer</li><li>v2.6.30 enable/disable probes interfaces, if kp-&gt;flags is set <code>KPROBE_FLAG_DISABLED</code>, that kp will be registered but disabled, so, it’s handlers aren’t hit until calling enable_kprobe(kp)</li><li>v2.6.33 updates kprobe blacklist; check whether kprobe re-registered</li><li>v2.6.34 kprobe optimization <code>KPROBE_FLAG_OPTIMIZED</code> for <code>i386</code> and <code>x86_64</code>; kprobes sysctl interface <code>/proc/sys/debug/kprobes-optimization</code> to control kprobe optimization</li><li>v2.6.39 do not optimize in the entry code due to the unstable stack handling</li></ul><h2 id="initialization">initialization</h2><ul><li>when Linux is starting, it will call <code>init_kprobes</code> in its process of initialization</li></ul><pre><code class="language-c">struct notifier_block *i386die_chain;
 
@@ -455,8 +455,7 @@ void __init perf_event_init(void)
     perf_tp_register();
     // ...
 }
-</code></pre><pre><code>* `init_kprobe_trace` will be called after `perf_event_init` is done inside `rest_init`, it will register `probes_write` write handler, which will be triggered when we echo `/sys/kernel/debug/tracing/kprobe_events`
-</code></pre><pre><code class="language-c">static const struct file_operations kprobe_events_ops = {
+</code></pre><ul><li><code>init_kprobe_trace</code> will be called after <code>perf_event_init</code> is done inside <code>rest_init</code>, it will register <code>probes_write</code> write handler, which will be triggered when we echo <code>/sys/kernel/debug/tracing/kprobe_events</code></li></ul><pre><code class="language-c">static const struct file_operations kprobe_events_ops = {
     // ...
     .write      = probes_write,
 }
@@ -571,7 +570,7 @@ static ssize_t probes_write(struct file *file, const char __user *buffer,
         prog_type = BPF_PROG_TYPE_KPROBE;  // kprobe bpf type program
     } // ...
         
-        if (is_kprobe || is_kretprobe) {
+    if (is_kprobe || is_kretprobe) {
         if (is_kprobe)
             event += 7;
         else
@@ -689,7 +688,7 @@ static int perf_try_init_event(struct pmu *pmu, struct perf_event *event)
 {
     // ...
     event-&gt;pmu = pmu;
-        // here finally perf_tp_event_init in struct pmu perf_tracepoint is called
+    // here finally perf_tp_event_init in struct pmu perf_tracepoint is called
     ret = pmu-&gt;event_init(event);
     // ...
 }
@@ -733,12 +732,29 @@ SYSCALL_DEFINE5(perf_event_open,
     event = perf_event_alloc(&amp;attr, cpu, task, group_leader, NULL,
                  NULL, NULL, cgroup_fd);
     // ...
+    event_file = anon_inode_getfile(&quot;[perf_event]&quot;, &amp;perf_fops, event,
+                    f_flags);  // here create the event_file and register perf_fops for it
+    // ...
 }
-</code></pre><ul><li>attaching bpf to kprobe and enable it</li></ul><pre><code class="language-c">// ... copied from above
+</code></pre><ul><li>in <code>perf_event_open</code> syscall, it will create an event_file by calling <code>anon_inode_getfile</code> and register <code>perf_fops</code> for it, which is important to attach bpf to kprobe and finally enable it</li></ul><pre><code class="language-c">static long perf_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+    struct perf_event *event = file-&gt;private_data;
+    // ...
+    ret = _perf_ioctl(event, cmd, arg);
+    // ...
+}
+
+static const struct file_operations perf_fops = {
+    // ...
+    .unlocked_ioctl     = perf_ioctl,
+    // ...
+};
+</code></pre><ul><li>using <code>PERF_EVENT_IOC_ENABLE</code> to activate the perf event, and using <code>PERF_EVENT_IOC_SET_BPF</code> to attach bpf program to kprobe</li></ul><pre><code class="language-c">// ... copied from above
     ioctl(efd, PERF_EVENT_IOC_ENABLE, 0);
     ioctl(efd, PERF_EVENT_IOC_SET_BPF, fd);
 // ...
-</code></pre><pre><code class="language-c">static int perf_event_set_bpf_prog(struct perf_event *event, u32 prog_fd)
+
+static int perf_event_set_bpf_prog(struct perf_event *event, u32 prog_fd)
 {
     struct bpf_prog *prog;
 
@@ -748,6 +764,54 @@ SYSCALL_DEFINE5(perf_event_open,
     event-&gt;tp_event-&gt;prog = prog;  // here finally attaches the ebpf program
 
     return 0;
+}
+
+static long _perf_ioctl(struct perf_event *event, unsigned int cmd, unsigned long arg)
+{
+    void (*func)(struct perf_event *);
+    u32 flags = arg;
+
+    switch (cmd) {
+    case PERF_EVENT_IOC_ENABLE:
+        func = _perf_event_enable;  // later calls func, event-&gt;state = PERF_EVENT_STATE_ACTIVE;
+        break;
+    // ...
+    case PERF_EVENT_IOC_SET_BPF:
+        return perf_event_set_bpf_prog(event, arg);
+    // ...
+    }
+}
+</code></pre><ul><li>when the kprobe is hit, <code>kprobe_dispatcher</code> will be called, and finally to call the attached bpf program</li></ul><pre><code class="language-c">unsigned int trace_call_bpf(struct bpf_prog *prog, void *ctx)
+{
+    unsigned int ret;
+    // ...
+    ret = BPF_PROG_RUN(prog, ctx);  // here to finally run bpf program
+    // ...
+}		
+
+static void
+kprobe_perf_func(struct trace_kprobe *tk, struct pt_regs *regs)
+{
+    struct ftrace_event_call *call = &amp;tk-&gt;tp.call;
+    struct bpf_prog *prog = call-&gt;prog;
+    // ...
+
+    if (prog &amp;&amp; !trace_call_bpf(prog, regs))  // call bpf program
+        return;
+    // ...
+}
+
+static int kprobe_dispatcher(struct kprobe *kp, struct pt_regs *regs)
+{
+    struct trace_kprobe *tk = container_of(kp, struct trace_kprobe, rp.kp);
+
+    tk-&gt;nhit++;
+    // ...
+#ifdef CONFIG_PERF_EVENTS
+    if (tk-&gt;tp.flags &amp; TP_FLAG_PROFILE)
+        kprobe_perf_func(tk, regs);  // inside to call bpf program
+#endif
+    return 0;   /* We don&#39;t tweek kernel, so just return 0 */
 }
 </code></pre><h1 id="ftrace">ftrace</h1><ul><li>NOTE: ftrace implementation based on Linux v2.6.27 codes reading, may update it after reading new version of it</li></ul><h2 id="perequisite-knowledge-1">perequisite knowledge</h2><ul><li>Linux kernel should be compiled with gcc with <code>-pg</code> flag, which will insert <code>mcount</code> function call at the start of every function, unless you use the function attribute <code>no_instrument_function</code> to suppress profiling of individual functions when compiling</li></ul><pre><code class="language-shell">gcc -c -pg -m32 ftrace.c
 </code></pre><pre><code class="language-c">void foo()
@@ -778,7 +842,7 @@ bar:
         subl    $12, %esp
         pushl   $.LC0
         // ...
-</code></pre></div><footer class="content__footer"><div class="entry-wrapper"><p class="content__updated">This article was updated on February 5, 2026</p><div class="content__actions"><ul class="content__tag"><li><a href="https://willmafh.github.io/tags/ebpf/">eBPF</a></li><li><a href="https://willmafh.github.io/tags/kprobes/">kprobes</a></li><li><a href="https://willmafh.github.io/tags/perf/">perf</a></li><li><a href="https://willmafh.github.io/tags/tracepoints/">tracepoints</a></li><li><a href="https://willmafh.github.io/tags/tracing/">tracing</a></li><li><a href="https://willmafh.github.io/tags/uprobes/">uprobes</a></li></ul><div class="content__share"><button class="btn--icon content__share-button js-content__share-button"><svg width="20" height="20" aria-hidden="true"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#share"></use></svg> <span>Share It</span></button><div class="content__share-popup js-content__share-popup"><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwillmafh.github.io%2Flinux-tracing-techs.html&amp;via=willmafh&amp;text=Linux%20tracing%20techs" class="js-share twitter" rel="nofollow noopener noreferrer"><svg class="icon" aria-hidden="true" focusable="false"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg> <span>Twitter</span></a></div></div></div><div class="content__bio bio"><div><h3 class="h4 bio__name"><a href="https://willmafh.github.io/authors/willmafh/" rel="author">willmafh</a></h3></div></div></div><nav class="content__nav"><div class="wrapper"><div class="content__nav-inner"><div class="content__nav-prev"><a href="https://willmafh.github.io/git-recipes-2.html" class="content__nav-link" rel="prev"><div><span>Previous</span> git recipes</div></a></div></div></div></nav></footer></article></main><footer class="footer footer--glued"><div class="wrapper"><div class="footer__copyright"><p>Powered by Publii</p></div><div class="footer__social"><a href="https://x.com/willmafh" aria-label="X"><svg><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg></a></div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://willmafh.github.io/assets/js/scripts.min.js?v=700105c316933a8202041b6415abb233"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
+</code></pre></div><footer class="content__footer"><div class="entry-wrapper"><p class="content__updated">This article was updated on February 6, 2026</p><div class="content__actions"><ul class="content__tag"><li><a href="https://willmafh.github.io/tags/ebpf/">eBPF</a></li><li><a href="https://willmafh.github.io/tags/kprobes/">kprobes</a></li><li><a href="https://willmafh.github.io/tags/perf/">perf</a></li><li><a href="https://willmafh.github.io/tags/tracepoints/">tracepoints</a></li><li><a href="https://willmafh.github.io/tags/tracing/">tracing</a></li><li><a href="https://willmafh.github.io/tags/uprobes/">uprobes</a></li></ul><div class="content__share"><button class="btn--icon content__share-button js-content__share-button"><svg width="20" height="20" aria-hidden="true"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#share"></use></svg> <span>Share It</span></button><div class="content__share-popup js-content__share-popup"><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwillmafh.github.io%2Flinux-tracing-techs.html&amp;via=willmafh&amp;text=Linux%20tracing%20techs" class="js-share twitter" rel="nofollow noopener noreferrer"><svg class="icon" aria-hidden="true" focusable="false"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg> <span>Twitter</span></a></div></div></div><div class="content__bio bio"><div><h3 class="h4 bio__name"><a href="https://willmafh.github.io/authors/willmafh/" rel="author">willmafh</a></h3></div></div></div><nav class="content__nav"><div class="wrapper"><div class="content__nav-inner"><div class="content__nav-prev"><a href="https://willmafh.github.io/git-recipes-2.html" class="content__nav-link" rel="prev"><div><span>Previous</span> git recipes</div></a></div></div></div></nav></footer></article></main><footer class="footer footer--glued"><div class="wrapper"><div class="footer__copyright"><p>Powered by Publii</p></div><div class="footer__social"><a href="https://x.com/willmafh" aria-label="X"><svg><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#twitter"/></svg></a></div><button id="backToTop" class="footer__bttop" aria-label="Back to top" title="Back to top"><svg width="20" height="20"><use xlink:href="https://willmafh.github.io/assets/svg/svg-map.svg#toparrow"/></svg></button></div></footer><script defer="defer" src="https://willmafh.github.io/assets/js/scripts.min.js?v=700105c316933a8202041b6415abb233"></script><script>window.publiiThemeMenuConfig={mobileMenuMode:'sidebar',animationSpeed:300,submenuWidth: 'auto',doubleClickTime:500,mobileMenuExpandableSubmenus:true,relatedContainerForOverlayMenuSelector:'.top'};</script><script>var images = document.querySelectorAll('img[loading]');
         for (var i = 0; i < images.length; i++) {
             if (images[i].complete) {
                 images[i].classList.add('is-loaded');
