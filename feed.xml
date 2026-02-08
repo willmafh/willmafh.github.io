@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-07T12:38:00+08:00</updated>
+    <updated>2026-02-08T17:24:16+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -534,6 +534,7 @@ echo 1 &gt; /sys/kernel/debug/tracing/events/enable
 <li>v3.18 introduced <code>bpf</code> syscall, <code>bpf verifier</code> and basic <code>bpf map</code></li>
 <li>v3.19 introduced <code>BPF_MAP_TYPE_ARRAY</code> bpf array and <code>BPF_MAP_TYPE_HASH</code> bpf hash map; basic version of <code>bpf helpers</code>; <code>BPF_PROG_TYPE_SOCKET_FILTER</code> socket filter macro</li>
 <li>v4.1 introduced more prog types, especially <code>BPF_PROG_TYPE_KPROBE</code> allowing bpf program to attach to kprobes; more bpf helper functions like <code>bpf_get_prandom_u32</code> and <code>bpf_get_smp_processor_id</code> etc</li>
+<li>v4.2 introduced <code>tail calls</code> to allow chaining multiple eBPF programs together, effectively extending the overall execution beyond the single-program instruction limit; new map <code>BPF_MAP_TYPE_PROG_ARRAY</code> type to support <code>tail calls</code>; several support helper functions, including <code>bpf_tail_call</code>, <code>bpf_get_current_pid_tgid</code>, <code>bpf_get_current_uid_gid</code>, <code>bpf_get_current_comm</code> etc</li>
 </ul>
 <h2 id="bpf-program-loading">bpf program loading</h2>
 <ul>
@@ -551,6 +552,22 @@ echo 1 &gt; /sys/kernel/debug/tracing/events/enable
         BPF_R0 = (__bpf_call_base + insn-&gt;imm)(BPF_R1, BPF_R2, BPF_R3,
                                BPF_R4, BPF_R5);  // NOTE: where magics happend
         CONT;
+    // ...
+    // how does tail call implement
+    JMP_TAIL_CALL: {
+        struct bpf_map *map = (struct bpf_map *) (unsigned long) BPF_R2;
+        struct bpf_array *array = container_of(map, struct bpf_array, map);
+        struct bpf_prog *prog;
+        u64 index = BPF_R3;
+        // ...
+        prog = READ_ONCE(array-&gt;prog[index]);  // get new prog here
+        // ...
+        ARG1 = BPF_R1;
+        insn = prog-&gt;insnsi;  // replace insn to new prog&#39;s instructions
+        goto select_insn;  // next run, we will execute insn of new program
+out:
+        CONT;
+    }
     // ...
 }
 </code></pre>
