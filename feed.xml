@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-08T22:28:27+08:00</updated>
+    <updated>2026-02-09T23:50:58+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -536,6 +536,7 @@ echo 1 &gt; /sys/kernel/debug/tracing/events/enable
 <li>v4.1 introduced more prog types, especially <code>BPF_PROG_TYPE_KPROBE</code> allowing bpf program to attach to kprobes; more bpf helper functions like <code>bpf_get_prandom_u32</code> and <code>bpf_get_smp_processor_id</code> etc</li>
 <li>v4.2 introduced <code>tail calls</code> to allow chaining multiple eBPF programs together, effectively extending the overall execution beyond the single-program instruction limit; new map <code>BPF_MAP_TYPE_PROG_ARRAY</code> type to support <code>tail calls</code>; several support helper functions, including <code>bpf_tail_call</code>, <code>bpf_get_current_pid_tgid</code>, <code>bpf_get_current_uid_gid</code>, <code>bpf_get_current_comm</code> etc</li>
 <li>v4.3 new map <code>BPF_MAP_TYPE_PERF_EVENT_ARRAY</code> type and with <code>perf_event_read</code> function to do perf event monitoring; more helper functions like <code>bpf_get_cgroup_classid</code> <code>skb_[gs]et_tunnel_key</code> etc; first introduced <code>libbpf</code> in <code>tools/lib/bpf</code></li>
+<li>v4.4 new cmd <code>BPF_OBJ_PIN</code> and <code>BPF_OBJ_GET</code></li>
 </ul>
 <h2 id="bpf-program-loading">bpf program loading</h2>
 <ul>
