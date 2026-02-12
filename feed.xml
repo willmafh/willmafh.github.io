@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-11T23:39:58+08:00</updated>
+    <updated>2026-02-12T23:01:04+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -538,7 +538,7 @@ echo 1 &gt; /sys/kernel/debug/tracing/events/enable
 <li>v4.3 new map <code>BPF_MAP_TYPE_PERF_EVENT_ARRAY</code> type and with <code>perf_event_read</code> function to do perf event monitoring; more helper functions like <code>bpf_get_cgroup_classid</code> <code>skb_[gs]et_tunnel_key</code> etc; first introduced <code>libbpf</code> in <code>tools/lib/bpf</code></li>
 <li>v4.4 mount and register <code>/sys/fs/bpf/</code> filesystem for new cmd <code>BPF_OBJ_PIN</code> and <code>BPF_OBJ_GET</code>; <code>/proc/sys/kernel/unprivileged_bpf_disabled</code> to control whether users without <code>CAP_SYS_ADMIN</code> privilege can use the <code>bpf</code> syscall; <code> bpf_perf_event_output</code> <code> bpf_get_route_realm</code> and <code>bpf_redirect</code> functions</li>
 <li>v4.5 enhance <code>/sys/fs/bpf/</code> filesystem to support <code>link</code> and <code>rename</code>; <code>bpf_skb_load_bytes</code> to <code>net/core/filter.c</code></li>
-<li>v4.6 new map types <code>BPF_MAP_TYPE_PERCPU_ARRAY</code> <code>BPF_MAP_TYPE_PERCPU_HASH</code> <code>BPF_MAP_TYPE_STACK_TRACE</code></li>
+<li>v4.6 new map types <code>BPF_MAP_TYPE_PERCPU_ARRAY</code> <code>BPF_MAP_TYPE_PERCPU_HASH</code> <code>BPF_MAP_TYPE_STACK_TRACE</code>; helper functions like <code>bpf_skb_[gs]et_tunnel_opt</code>, <code>bpf_get_stackid</code> etc, after using map <code>BPF_MAP_TYPE_STACK_TRACE</code> and <code>bpf_get_stackid</code> to get stack traces, you can use <code>/proc/kallsyms</code> to translate them into understandable function names</li>
 </ul>
 <h2 id="bpf-program-loading">bpf program loading</h2>
 <ul>
