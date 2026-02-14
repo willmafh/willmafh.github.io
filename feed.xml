@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-14T21:30:28+08:00</updated>
+    <updated>2026-02-14T21:44:29+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -539,7 +539,7 @@ echo 1 &gt; /sys/kernel/debug/tracing/events/enable
 <li>v4.4 mount and register <code>/sys/fs/bpf/</code> filesystem for new cmd <code>BPF_OBJ_PIN</code> and <code>BPF_OBJ_GET</code>; <code>/proc/sys/kernel/unprivileged_bpf_disabled</code> to control whether users without <code>CAP_SYS_ADMIN</code> privilege can use the <code>bpf</code> syscall; <code> bpf_perf_event_output</code> <code> bpf_get_route_realm</code> and <code>bpf_redirect</code> functions</li>
 <li>v4.5 enhance <code>/sys/fs/bpf/</code> filesystem to support <code>link</code> and <code>rename</code>; <code>bpf_skb_load_bytes</code> to <code>net/core/filter.c</code></li>
 <li>v4.6 new map types <code>BPF_MAP_TYPE_PERCPU_ARRAY</code> <code>BPF_MAP_TYPE_PERCPU_HASH</code> <code>BPF_MAP_TYPE_STACK_TRACE</code>; helper functions like <code>bpf_skb_[gs]et_tunnel_opt</code>, <code>bpf_get_stackid</code> etc, after using map <code>BPF_MAP_TYPE_STACK_TRACE</code> and <code>bpf_get_stackid</code> to get stack traces, you can use <code>/proc/kallsyms</code> to translate them into understandable function names</li>
-<li>v4.7 new program type <code>BPF_PROG_TYPE_TRACEPOINT</code>; sysctl interfaces <code>/proc/sys/net/core/bpf_jit_enable</code> and <code>/proc/sys/net/core/bpf_jit_harden</code></li>
+<li>v4.7 new program type <code>BPF_PROG_TYPE_TRACEPOINT</code>; sysctl interfaces <code>/proc/sys/net/core/bpf_jit_enable</code> and <code>/proc/sys/net/core/bpf_jit_harden</code>; helper functions <code>bpf_event_output</code>, <code>bpf_get_stackid_tp</code></li>
 </ul>
 <h2 id="bpf-program-loading">bpf program loading</h2>
 <ul>
@@ -1077,6 +1077,7 @@ static int kprobe_dispatcher(struct kprobe *kp, struct pt_regs *regs)
 <h2 id="how-does-bpf-program-connect-to-tracepoint">how does bpf program connect to tracepoint</h2>
 <ul>
 <li>ebpf program attach to tracepoints is very similar to kprobes in Linux <code>v4.7</code>, here we does not contain all the details like kprobes above, but something specially to tracepoints</li>
+<li>read <code>/sys/kernel/debug/tracing/events/xxx/id</code> file to know tracepoint id and setup <code>struct perf_event_attr</code> when calling <code>perf_event_open</code></li>
 <li>assigning <code>trace_event_reg</code> to <code>.reg</code> field of <code>struct trace_event_class</code>, and it will call <code>tracepoint_probe_register</code> to register field <code>.perf_probe</code> callback function, which is a <code>perf_trace_xxx</code> function, to tracepoint</li>
 </ul>
 <pre><code class="language-c">#define _TRACE_PERF_INIT(call)                      \
