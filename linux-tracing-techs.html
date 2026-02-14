@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Linux tracing techs - willmafh</title><meta name="description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/linux-tracing-techs.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Linux tracing techs"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;"><meta property="og:url" content="https://willmafh.github.io/linux-tracing-techs.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=2110fdcc9616a96348b5f5ad11c64055"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/linux-tracing-techs.html"},"headline":"Linux tracing techs","datePublished":"2026-01-28T21:35+08:00","dateModified":"2026-02-14T20:32+08:00","description":"kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
+<!DOCTYPE html><html lang="en-gb"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Linux tracing techs - willmafh</title><meta name="description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;"><meta name="generator" content="Publii Open-Source CMS for Static Site"><link rel="canonical" href="https://willmafh.github.io/linux-tracing-techs.html"><link rel="alternate" type="application/atom+xml" href="https://willmafh.github.io/feed.xml" title="willmafh - RSS"><link rel="alternate" type="application/json" href="https://willmafh.github.io/feed.json" title="willmafh - JSON"><meta property="og:title" content="Linux tracing techs"><meta property="og:site_name" content="willmafh"><meta property="og:description" content="kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;"><meta property="og:url" content="https://willmafh.github.io/linux-tracing-techs.html"><meta property="og:type" content="article"><link rel="stylesheet" href="https://willmafh.github.io/assets/css/style.css?v=2110fdcc9616a96348b5f5ad11c64055"><script type="application/ld+json">{"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://willmafh.github.io/linux-tracing-techs.html"},"headline":"Linux tracing techs","datePublished":"2026-01-28T21:35+08:00","dateModified":"2026-02-14T21:30+08:00","description":"kprobes brief history Linux v2.6.9 introduced kprobes into its mainline, but only for i386 v2.6.10 begins to add kprobes support for x86_64 Linux v2.6.12 allows multiple kprobes at the same address v2.6.13 starts to support kretprobe v2.6.14 groups kprobes related functions to section .kprobes.text, so&hellip;","author":{"@type":"Person","name":"willmafh","url":"https://willmafh.github.io/authors/willmafh/"},"publisher":{"@type":"Organization","name":"willmafh"}}</script><noscript><style>img[loading] {
                     opacity: 1;
                 }</style></noscript></head><body class="post-template"><header class="top js-header"><a class="logo" href="https://willmafh.github.io/">willmafh</a></header><main class="post"><article class="content"><div class="hero hero--noimage"><header class="hero__content"><div class="wrapper"><h1>Linux tracing techs</h1><div class="feed__meta content__meta"><a href="https://willmafh.github.io/authors/willmafh/" class="feed__author">willmafh</a> <time datetime="2026-01-28T21:35" class="feed__date">January 28, 2026</time></div></div></header></div><div class="entry-wrapper content__entry"><h1 id="kprobes">kprobes</h1><h2 id="brief-history">brief history</h2><ul><li>Linux v2.6.9 introduced <code>kprobe</code>s into its mainline, but only for <code>i386</code></li><li>v2.6.10 begins to add kprobes support for <code>x86_64</code></li><li>Linux v2.6.12 allows multiple kprobes at the same address</li><li>v2.6.13 starts to support <code>kretprobe</code></li><li>v2.6.14 groups kprobes related functions to section <code>.kprobes.text</code>, so that kprobes to these codes will be rejected</li><li>v2.6.15 updates: using <code>percpu</code> infra to manage some internal variables; using <code>RCU(Read-Copy-Update) list</code> to manage kprobes; more checks on kprobes register, including kernel module address check</li><li>v2.6.16 updates: more kprobes rejects on kernel functions; refactor kprobes register functions to check whether we are probing a kernel module</li><li>v2.6.17 <code>i386</code> updates its <code>kretprobe_trampoline_holder</code>; updates <code>kprobe_fault_handler</code></li><li>v2.6.18 kprobes registers for <code>page fault notifications</code> when their is an active probe registered; <code>tcpprobe</code> module to probe <code>tcp_sendmsg</code></li><li>v2.6.19 add <code>symbol_name</code> and <code>offset</code> fields to <code>struct kprobe</code> so you can directly using function name to register kprobes; <code>dccp_probe</code> module to probe <code>dccp_sendmsg</code></li><li>v2.6.21 add basic <code>debugfs</code> support for kprobes, <code>/sys/kernel/debug/kprobes/list</code> lists all registered probes on the system</li><li>v2.6.22 more on <code>debugfs</code>, add <code>/sys/kernel/debug/kprobes/enabled</code> to globally turn registered kprobes on/off and the default value is on</li><li>v2.6.24 add basic <code>kretprobe blacklist</code> support</li><li>v2.6.25 kretprobe supports optional user-specified <code>entry_handler</code> which runs on function entry and also supports <code>private data</code> which can pass data between <code>entry_handler</code> and <code>ret_handler</code></li><li>v2.6.26 add basic <code>kprobe blacklist</code> support; batch registration/unregistration of a group of probes interfaces</li><li>v2.6.29 add <code>module notifier call back</code>, which will check kprobes on the module; add <code>flags</code> field to <code>struct kprobe</code> to mark kprobe gone <code>KPROBE_FLAG_GONE</code> and remove its instruction buffer</li><li>v2.6.30 enable/disable probes interfaces, if kp-&gt;flags is set <code>KPROBE_FLAG_DISABLED</code>, that kp will be registered but disabled, so, it’s handlers aren’t hit until calling enable_kprobe(kp)</li><li>v2.6.33 updates kprobe blacklist; check whether kprobe re-registered</li><li>v2.6.34 kprobe optimization <code>KPROBE_FLAG_OPTIMIZED</code> for <code>i386</code> and <code>x86_64</code>; kprobes sysctl interface <code>/proc/sys/debug/kprobes-optimization</code> to control kprobe optimization</li><li>v2.6.39 do not optimize in the entry code due to the unstable stack handling</li></ul><h2 id="initialization">initialization</h2><ul><li>when Linux is starting, it will call <code>init_kprobes</code> in its process of initialization</li></ul><pre><code class="language-c">struct notifier_block *i386die_chain;
 
@@ -828,6 +828,74 @@ static int kprobe_dispatcher(struct kprobe *kp, struct pt_regs *regs)
         kprobe_perf_func(tk, regs);  // inside to call bpf program
 #endif
     return 0;   /* We don&#39;t tweek kernel, so just return 0 */
+}
+</code></pre><h2 id="how-does-bpf-program-connect-to-tracepoint">how does bpf program connect to tracepoint</h2><ul><li>ebpf program attach to tracepoints is very similar to kprobes in Linux <code>v4.7</code>, here we does not contain all the details like kprobes above, but something specially to tracepoints</li><li>assigning <code>trace_event_reg</code> to <code>.reg</code> field of <code>struct trace_event_class</code>, and it will call <code>tracepoint_probe_register</code> to register field <code>.perf_probe</code> callback function, which is a <code>perf_trace_xxx</code> function, to tracepoint</li></ul><pre><code class="language-c">#define _TRACE_PERF_INIT(call)                      \
+    .perf_probe     = perf_trace_##call,
+
+static struct trace_event_class __used __refdata event_class_##call = { \
+    .system         = TRACE_SYSTEM_STRING,          \   
+    .define_fields      = trace_event_define_fields_##call, \
+    .fields         = LIST_HEAD_INIT(event_class_##call.fields),\
+    .raw_init       = trace_event_raw_init,         \   
+    .probe          = trace_event_raw_event_##call,     \   
+    .reg            = trace_event_reg,          \
+    _TRACE_PERF_INIT(call)                      \   
+};
+
+int trace_event_reg(struct trace_event_call *call,
+            enum trace_reg type, void *data)
+{
+    struct trace_event_file *file = data;
+
+    WARN_ON(!(call-&gt;flags &amp; TRACE_EVENT_FL_TRACEPOINT));
+    switch (type) {
+    // ...
+#ifdef CONFIG_PERF_EVENTS
+    case TRACE_REG_PERF_REGISTER:
+        return tracepoint_probe_register(call-&gt;tp,
+                         call-&gt;class-&gt;perf_probe,  // to register perf_probe callback to tracepoint
+                         call);
+    case TRACE_REG_PERF_UNREGISTER:
+        tracepoint_probe_unregister(call-&gt;tp,
+                        call-&gt;class-&gt;perf_probe,
+                        call);
+        return 0;
+    // ...
+#endif
+    }    
+    return 0;
+}
+EXPORT_SYMBOL_GPL(trace_event_reg);
+</code></pre><ul><li>when the tracepoint is hit, the registered <code>.perf_probe</code> cb will be called, as stated above, which is <code>perf_trace_xxx</code> function</li></ul><pre><code class="language-c">static notrace void                         \
+perf_trace_##call(void *__data, proto)                  \
+{                                   \
+    struct trace_event_call *event_call = __data;           \
+    // ...
+    struct bpf_prog *prog = event_call-&gt;prog;           \
+    struct pt_regs *__regs;                     \
+    // ...
+    perf_fetch_caller_regs(__regs);                 \
+    // ...
+    perf_trace_run_bpf_submit(entry, __entry_size, rctx,        \
+                  event_call, __count, __regs,      \
+                  head, __task);            \
+}
+
+void perf_trace_run_bpf_submit(void *raw_data, int size, int rctx, 
+                   struct trace_event_call *call, u64 count,
+                   struct pt_regs *regs, struct hlist_head *head,
+                   struct task_struct *task)
+{
+    struct bpf_prog *prog = call-&gt;prog;
+
+    if (prog) {
+        *(struct pt_regs **)raw_data = regs;
+        // here to finally call trace_call_bpf to run ebpf program
+        if (!trace_call_bpf(prog, raw_data) || hlist_empty(head)) {
+            // ...
+        }     
+    }
+    // ...
 }
 </code></pre><h2 id="ebpf-sysctl-interface">ebpf sysctl interface</h2><h3 id="bpf_jit_enable">bpf_jit_enable</h3><ul><li>check ebpf jit status</li></ul><pre><code class="language-bash">cat /proc/sys/net/core/bpf_jit_enable
 </code></pre><ul><li>turn on or off ebpf jit compiler</li></ul><pre><code class="language-bash"># turn off
