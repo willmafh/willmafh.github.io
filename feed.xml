@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-14T21:44:29+08:00</updated>
+    <updated>2026-02-15T17:47:28+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -540,6 +540,7 @@ echo 1 &gt; /sys/kernel/debug/tracing/events/enable
 <li>v4.5 enhance <code>/sys/fs/bpf/</code> filesystem to support <code>link</code> and <code>rename</code>; <code>bpf_skb_load_bytes</code> to <code>net/core/filter.c</code></li>
 <li>v4.6 new map types <code>BPF_MAP_TYPE_PERCPU_ARRAY</code> <code>BPF_MAP_TYPE_PERCPU_HASH</code> <code>BPF_MAP_TYPE_STACK_TRACE</code>; helper functions like <code>bpf_skb_[gs]et_tunnel_opt</code>, <code>bpf_get_stackid</code> etc, after using map <code>BPF_MAP_TYPE_STACK_TRACE</code> and <code>bpf_get_stackid</code> to get stack traces, you can use <code>/proc/kallsyms</code> to translate them into understandable function names</li>
 <li>v4.7 new program type <code>BPF_PROG_TYPE_TRACEPOINT</code>; sysctl interfaces <code>/proc/sys/net/core/bpf_jit_enable</code> and <code>/proc/sys/net/core/bpf_jit_harden</code>; helper functions <code>bpf_event_output</code>, <code>bpf_get_stackid_tp</code></li>
+<li>v4.8 new program type <code>BPF_PROG_TYPE_XDP</code>; new map type <code>BPF_MAP_TYPE_CGROUP_ARRAY</code>; more helper functions <code>bpf_skb_change_proto</code>, <code>bpf_skb_change_type</code>, <code>bpf_skb_under_cgroup</code>, <code>bpf_get_hash_recalc</code>, <code>bpf_get_current_task</code>, <code>bpf_probe_write_user</code></li>
 </ul>
 <h2 id="bpf-program-loading">bpf program loading</h2>
 <ul>
@@ -696,7 +697,7 @@ static __init int init_kprobe_trace(void)
 }
 fs_initcall(init_kprobe_trace);
 </code></pre>
-<h2 id="how-does-bpf-program-connect-to-kprobes">how does bpf program connect to kprobes</h2>
+<h3 id="how-does-bpf-program-connect-to-kprobes">how does bpf program connect to kprobes</h3>
 <ul>
 <li>when you write SEC(“kprobe/xxxx”), you aren’t writing a standard C function call. when you compile your code using <code>clang -target bpf</code>, the compiler looks at that SEC() macro and creates a custom section named <code>kprobe/xxxx</code></li>
 </ul>
@@ -1153,6 +1154,179 @@ void perf_trace_run_bpf_submit(void *raw_data, int size, int rctx,
     // ...
 }
 </code></pre>
+<h2 id="xdp-bpf-program">XDP bpf program</h2>
+<h3 id="perequisite-knowledge-1">perequisite knowledge</h3>
+<ul>
+<li><code>module_init</code> calls <code>mlx4_en_init</code> to register <code>struct mlx4_interface</code>, where <code>.activate</code> function <code>mlx4_en_activate</code> will be called later to setup <code>struct net_device_ops</code> for field <code>netdev_ops</code> of <code>struct net_device</code>, and in <code>struct net_device_ops</code>, the field of <code>.ndo_xdp</code> is important for xdp to work, which is function <code>mlx4_xdp</code> in the following code example</li>
+</ul>
+<pre><code class="language-c">static const struct net_device_ops mlx4_netdev_ops = {
+    // ...
+    .ndo_xdp        = mlx4_xdp,
+};
+
+int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+            struct mlx4_en_port_profile *prof)
+{
+    // ...
+    /*
+     * Initialize netdev entry points
+     */
+    if (mlx4_is_master(priv-&gt;mdev-&gt;dev))
+        dev-&gt;netdev_ops = &amp;mlx4_netdev_ops_master;
+    else
+        dev-&gt;netdev_ops = &amp;mlx4_netdev_ops;
+    // ...
+}
+
+static void mlx4_en_activate(struct mlx4_dev *dev, void *ctx)
+{   
+    int i;
+    struct mlx4_en_dev *mdev = ctx;
+
+    /* Create a netdev for each port */
+    mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH) {
+        mlx4_info(mdev, &quot;Activating port:%d\n&quot;, i);
+        if (mlx4_en_init_netdev(mdev, i, &amp;mdev-&gt;profile.prof[i]))
+            mdev-&gt;pndev[i] = NULL;
+    }       
+    // ...
+}
+
+static struct mlx4_interface mlx4_en_interface = {
+    // ...
+    .protocol   = MLX4_PROT_ETH,
+    .activate   = mlx4_en_activate,
+};
+
+static int __init mlx4_en_init(void)
+{
+    // ...
+    return mlx4_register_interface(&amp;mlx4_en_interface);
+}
+
+module_init(mlx4_en_init);
+</code></pre>
+<h3 id="how-does-xdp-bpf-program-connect-to-nic">how does XDP bpf program connect to NIC</h3>
+<ul>
+<li>in linux <code>v4.8</code>, XDP attachment support is very limited, we will need the <code>ip</code> command from <code>iproute2</code> to do the job, and it will finally sends an <code>RTM_SETLINK</code> Netlink message to the kernel</li>
+</ul>
+<pre><code class="language-bash">ip link set dev eth0 xdp obj prog.o
+</code></pre>
+<ul>
+<li>The kernel receives the message and routes it through the networking stack<ul>
+<li><code>rtnetlink_rcv_msg</code></li>
+<li><code>rtnl_setlink</code></li>
+<li><code>do_setlink</code>, parses the attributes, specifically looking for <code>IFLA_XDP</code></li>
+<li><code>dev_change_xdp_fd</code>, the core kernel function that manages XDP attachment, which set or clear a bpf program for a device rx path</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-c">int dev_change_xdp_fd(struct net_device *dev, int fd)
+{
+    const struct net_device_ops *ops = dev-&gt;netdev_ops;
+    struct bpf_prog *prog = NULL;
+    struct netdev_xdp xdp = {};
+    int err; 
+
+    if (!ops-&gt;ndo_xdp)
+        return -EOPNOTSUPP;
+    if (fd &gt;= 0) { 
+        prog = bpf_prog_get_type(fd, BPF_PROG_TYPE_XDP);
+        if (IS_ERR(prog))
+            return PTR_ERR(prog);
+    }    
+
+    xdp.command = XDP_SETUP_PROG;
+    xdp.prog = prog;
+    // ndo_xdp cb will be called, as we stated above, it&#39;s mlx4_xdp function here
+    err = ops-&gt;ndo_xdp(dev, &amp;xdp);
+    // ...
+}
+</code></pre>
+<ul>
+<li>function <code>mlx4_xdp</code> will finally call <code>mlx4_xdp_set</code> to setup <code>XDP</code> program</li>
+</ul>
+<pre><code class="language-c">static int mlx4_xdp_set(struct net_device *dev, struct bpf_prog *prog)
+{
+    // ...
+    xdp_ring_num = prog ? ALIGN(priv-&gt;rx_ring_num, MLX4_EN_NUM_UP) : 0;
+    // ...
+    priv-&gt;xdp_ring_num = xdp_ring_num;
+    netif_set_real_num_tx_queues(dev, priv-&gt;tx_ring_num -
+                            priv-&gt;xdp_ring_num);
+
+    for (i = 0; i &lt; priv-&gt;rx_ring_num; i++) {
+        old_prog = xchg(&amp;priv-&gt;rx_ring[i]-&gt;xdp_prog, prog);  // here ebpf is finally set
+        if (old_prog)
+            bpf_prog_put(old_prog);
+    }
+    // ...
+}
+
+static int mlx4_xdp(struct net_device *dev, struct netdev_xdp *xdp)
+{
+    switch (xdp-&gt;command) {
+    case XDP_SETUP_PROG:
+        return mlx4_xdp_set(dev, xdp-&gt;prog);
+    case XDP_QUERY_PROG:
+        xdp-&gt;prog_attached = mlx4_xdp_attached(dev);
+        return 0;
+    default:
+        return -EINVAL;
+    }    
+}
+</code></pre>
+<ul>
+<li>when a packet hits the NIC, after hardware interrupt and Rx CQ polling, it will finally call <code>mlx4_en_process_rx_cq</code> function</li>
+</ul>
+<pre><code class="language-c">static inline u32 bpf_prog_run_xdp(const struct bpf_prog *prog,
+                   struct xdp_buff *xdp)
+{
+    u32 ret;
+
+    rcu_read_lock();
+    ret = BPF_PROG_RUN(prog, (void *)xdp);
+    rcu_read_unlock();
+
+    return ret;
+}
+
+int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int budget)
+{
+    // ...
+    xdp_prog = READ_ONCE(ring-&gt;xdp_prog);
+    // ...
+    while (XNOR(cqe-&gt;owner_sr_opcode &amp; MLX4_CQE_OWNER_MASK,
+            cq-&gt;mcq.cons_index &amp; cq-&gt;size)) {
+        // ...
+        /* A bpf program gets first chance to drop the packet. It may
+         * read bytes but not past the end of the frag.
+         */
+        if (xdp_prog) {
+            struct xdp_buff xdp;
+            // ...
+            xdp.data = page_address(frags[0].page) +
+                            frags[0].page_offset;
+            xdp.data_end = xdp.data + length;
+            // here to run xdp bpf program
+            act = bpf_prog_run_xdp(xdp_prog, &amp;xdp);
+            switch (act) {
+            case XDP_PASS:
+                break;
+            case XDP_TX:
+                // ...
+            case XDP_ABORTED:
+            case XDP_DROP:
+                if (mlx4_en_rx_recycle(ring, frags))
+                    goto consumed;
+                goto next;
+            }
+        }
+        // ...
+    }
+    // ...
+}
+</code></pre>
 <h2 id="ebpf-sysctl-interface">ebpf sysctl interface</h2>
 <h3 id="bpf_jit_enable">bpf_jit_enable</h3>
 <ul>
@@ -1190,7 +1364,7 @@ echo 2 &gt; /proc/sys/net/core/bpf_jit_harden
 <ul>
 <li>NOTE: ftrace implementation based on Linux v2.6.27 codes reading, may update it after reading new version of it</li>
 </ul>
-<h2 id="perequisite-knowledge-1">perequisite knowledge</h2>
+<h2 id="perequisite-knowledge-2">perequisite knowledge</h2>
 <ul>
 <li>Linux kernel should be compiled with gcc with <code>-pg</code> flag, which will insert <code>mcount</code> function call at the start of every function, unless you use the function attribute <code>no_instrument_function</code> to suppress profiling of individual functions when compiling</li>
 </ul>
