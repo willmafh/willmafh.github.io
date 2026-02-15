@@ -3,7 +3,7 @@
     <title>willmafh</title>
     <link href="https://willmafh.github.io/feed.xml" rel="self" />
     <link href="https://willmafh.github.io" />
-    <updated>2026-02-15T17:47:28+08:00</updated>
+    <updated>2026-02-15T23:35:58+08:00</updated>
     <author>
         <name>willmafh</name>
     </author>
@@ -541,6 +541,7 @@ echo 1 &gt; /sys/kernel/debug/tracing/events/enable
 <li>v4.6 new map types <code>BPF_MAP_TYPE_PERCPU_ARRAY</code> <code>BPF_MAP_TYPE_PERCPU_HASH</code> <code>BPF_MAP_TYPE_STACK_TRACE</code>; helper functions like <code>bpf_skb_[gs]et_tunnel_opt</code>, <code>bpf_get_stackid</code> etc, after using map <code>BPF_MAP_TYPE_STACK_TRACE</code> and <code>bpf_get_stackid</code> to get stack traces, you can use <code>/proc/kallsyms</code> to translate them into understandable function names</li>
 <li>v4.7 new program type <code>BPF_PROG_TYPE_TRACEPOINT</code>; sysctl interfaces <code>/proc/sys/net/core/bpf_jit_enable</code> and <code>/proc/sys/net/core/bpf_jit_harden</code>; helper functions <code>bpf_event_output</code>, <code>bpf_get_stackid_tp</code></li>
 <li>v4.8 new program type <code>BPF_PROG_TYPE_XDP</code>; new map type <code>BPF_MAP_TYPE_CGROUP_ARRAY</code>; more helper functions <code>bpf_skb_change_proto</code>, <code>bpf_skb_change_type</code>, <code>bpf_skb_under_cgroup</code>, <code>bpf_get_hash_recalc</code>, <code>bpf_get_current_task</code>, <code>bpf_probe_write_user</code></li>
+<li>v4.9 new program type <code>BPF_PROG_TYPE_PERF_EVENT</code></li>
 </ul>
 <h2 id="bpf-program-loading">bpf program loading</h2>
 <ul>
